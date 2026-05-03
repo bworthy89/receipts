@@ -38,3 +38,69 @@ queue = "crimeboard-deepcheck-dev"
 [vars]
 APPLE_AUDIENCE = "com.bworthy.crimeboard"
 # SESSION_SECRET is set as a secret via `wrangler secret put SESSION_SECRET`.
+
+# === Staging environment ===
+# Deploy with: pnpm run deploy:staging
+
+[env.staging]
+name = "crimeboard-api-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "crimeboard-staging"
+database_id = "8d232198-d453-4bca-afc2-897f2f85ca91"
+migrations_dir = "../../migrations"
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "f193bc63ea6a4d0daa350ed87f0591c9"
+
+[[env.staging.r2_buckets]]
+binding = "ARCHIVE"
+bucket_name = "crimeboard-archive-staging"
+
+[[env.staging.queues.producers]]
+binding = "INGEST_QUEUE"
+queue = "crimeboard-ingest-staging"
+
+[[env.staging.queues.producers]]
+binding = "DEEPCHECK_QUEUE"
+queue = "crimeboard-deepcheck-staging"
+
+# AI binding intentionally omitted (see note in default env above).
+
+[env.staging.vars]
+APPLE_AUDIENCE = "com.bworthy.crimeboard"
+
+# === Production environment ===
+# Deploy with: pnpm run deploy:prod
+
+[env.production]
+name = "crimeboard-api-prod"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "crimeboard-prod"
+database_id = "482175de-c6d6-45c3-bc56-25adb05ef9ea"
+migrations_dir = "../../migrations"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "b26c9166e7504d26bf70995a8ac0abdf"
+
+[[env.production.r2_buckets]]
+binding = "ARCHIVE"
+bucket_name = "crimeboard-archive-prod"
+
+[[env.production.queues.producers]]
+binding = "INGEST_QUEUE"
+queue = "crimeboard-ingest-prod"
+
+[[env.production.queues.producers]]
+binding = "DEEPCHECK_QUEUE"
+queue = "crimeboard-deepcheck-prod"
+
+# AI binding intentionally omitted (see note in default env above).
+
+[env.production.vars]
+APPLE_AUDIENCE = "com.bworthy.crimeboard"
