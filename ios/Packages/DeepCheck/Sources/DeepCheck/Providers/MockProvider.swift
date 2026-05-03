@@ -36,6 +36,25 @@ public struct MockProvider: DeepCheckProvider {
         )
     }
 
+    /// Number of canned investigations in which the given outlet appears as
+    /// a source. Used by `SourceDossierSheet` for the
+    /// "APPEARS IN N OF 10 ACTIVE CASES." caption.
+    ///
+    /// Static + synchronous because the canned table is process-local; when
+    /// a real provider replaces this, the live shape will need to be async
+    /// and the sheet will hold a small Task. Kept on the type so callers
+    /// don't need a provider instance for the lookup.
+    public static func outletAppearanceCount(_ outlet: String) -> Int {
+        canned.values.reduce(into: 0) { count, inv in
+            if inv.sources.contains(where: { $0.outlet == outlet }) {
+                count += 1
+            }
+        }
+    }
+
+    /// Total number of canned cases — denominator for the appearance caption.
+    public static var caseCount: Int { canned.count }
+
     // MARK: - Canned investigations
 
     private static let canned: [String: Investigation] = {

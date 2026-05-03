@@ -35,6 +35,7 @@ public struct DeepCheckScreen: View {
 
     @State private var loadState: LoadState = .loading
     @State private var willPlay: Bool = false
+    @State private var openDossier: OpenDossier? = nil
 
     public init(
         kase: Case,
@@ -58,6 +59,15 @@ public struct DeepCheckScreen: View {
                 .padding(.top, 12)
         }
         .task { await load() }
+        .sheet(item: $openDossier) { d in
+            SourceDossierSheet(
+                source: d.source,
+                kase: d.kase,
+                appearanceCount: d.appearanceCount,
+                totalCases: d.totalCases,
+                onDismiss: { openDossier = nil }
+            )
+        }
     }
 
     @ViewBuilder
@@ -78,7 +88,8 @@ public struct DeepCheckScreen: View {
                 VStack(spacing: 0) {
                     BoardSection(
                         investigation: investigation,
-                        isPlaying: willPlay
+                        isPlaying: willPlay,
+                        onSourceTap: { source in openSource(source, in: investigation) }
                     )
                     EvidenceDossier(investigation.evidence)
                 }
@@ -122,9 +133,46 @@ public struct DeepCheckScreen: View {
             willPlay = log.shouldPlay(caseID: kase.caseID)
             if willPlay { log.markPlayed(caseID: kase.caseID) }
             loadState = .ready(inv)
+
+            #if DEBUG
+            // Screenshot harness shortcut: pass `-AutoOpenSourceOutlet
+            // Reuters` via `xcrun simctl launch` to auto-raise the dossier
+            // sheet on the matching source. Wait for the playback budget
+            // (~5.5s) so the sheet doesn't pop on top of an animating board.
+            if let outlet = UserDefaults.standard.string(forKey: "AutoOpenSourceOutlet"),
+               let match = inv.sources.first(where: { $0.outlet == outlet }) {
+                if willPlay {
+                    try? await Task.sleep(for: .milliseconds(5_700))
+                }
+                openSource(match, in: inv)
+            }
+            #endif
         } catch {
             loadState = .error("Couldn't pull this file. Wire's down.")
         }
+    }
+
+    private func openSource(_ source: Source, in investigation: Investigation) {
+        // Appearance count is mock-static — `MockProvider.outletAppearanceCount`
+        // walks the canned table. When a real provider lands, this hop
+        // becomes async and the open will need to wait on the count fetch
+        // before raising the sheet.
+        let count = MockProvider.outletAppearanceCount(source.outlet)
+        let total = MockProvider.caseCount
+        openDossier = OpenDossier(
+            source: source,
+            kase: investigation.kase,
+            appearanceCount: count,
+            totalCases: total
+        )
+    }
+
+    private struct OpenDossier: Identifiable {
+        var id: String { source.id }
+        let source: Source
+        let kase: Case
+        let appearanceCount: Int
+        let totalCases: Int
     }
 
     private enum LoadState: Equatable {
@@ -139,6 +187,7 @@ public struct DeepCheckScreen: View {
 private struct BoardSection: View {
     let investigation: Investigation
     let isPlaying: Bool
+    let onSourceTap: (Source) -> Void
 
     var body: some View {
         GeometryReader { geo in
@@ -157,13 +206,15 @@ private struct BoardSection: View {
                     PlayingBoard(
                         investigation: investigation,
                         placements: placements,
-                        hub: hub
+                        hub: hub,
+                        onSourceTap: onSourceTap
                     )
                 } else {
                     SettledBoard(
                         investigation: investigation,
                         placements: placements,
-                        hub: hub
+                        hub: hub,
+                        onSourceTap: onSourceTap
                     )
                 }
             }
@@ -199,6 +250,7 @@ private struct PlayingBoard: View {
     let investigation: Investigation
     let placements: [SourcePlacement]
     let hub: CGPoint
+    let onSourceTap: (Source) -> Void
 
     var body: some View {
         ChoreographyBoard {
@@ -206,12 +258,15 @@ private struct PlayingBoard: View {
                 // Sources first so the headline sits on top of any overlap.
                 ForEach(Array(investigation.sources.enumerated()), id: \.element.id) { (i, source) in
                     let place = placements[i]
-                    PinDrop(delay: .milliseconds(530 + 80 * i)) {
-                        PolaroidDevelop {
-                            SourcePin(source)
-                                .rotationEffect(place.rotation)
+                    Button { onSourceTap(source) } label: {
+                        PinDrop(delay: .milliseconds(530 + 80 * i)) {
+                            PolaroidDevelop {
+                                SourcePin(source)
+                                    .rotationEffect(place.rotation)
+                            }
                         }
                     }
+                    .buttonStyle(.plain)
                     .choreographyAnchor("source-\(i)")
                     .position(x: hub.x + place.offsetFromHub.width, y: hub.y + place.offsetFromHub.height)
                 }
@@ -259,6 +314,7 @@ private struct SettledBoard: View {
     let investigation: Investigation
     let placements: [SourcePlacement]
     let hub: CGPoint
+    let onSourceTap: (Source) -> Void
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -290,9 +346,12 @@ private struct SettledBoard: View {
             // Sources.
             ForEach(Array(investigation.sources.enumerated()), id: \.element.id) { (i, source) in
                 let place = placements[i]
-                SourcePin(source)
-                    .rotationEffect(place.rotation)
-                    .position(x: hub.x + place.offsetFromHub.width, y: hub.y + place.offsetFromHub.height)
+                Button { onSourceTap(source) } label: {
+                    SourcePin(source)
+                        .rotationEffect(place.rotation)
+                }
+                .buttonStyle(.plain)
+                .position(x: hub.x + place.offsetFromHub.width, y: hub.y + place.offsetFromHub.height)
             }
 
             // Headline + static centerpiece verdict overlay (no slam motion).

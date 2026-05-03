@@ -35,6 +35,24 @@ struct ViewSmokeTests {
         let _: any View = EvidenceDossier(quotes)
     }
 
+    @Test("SourceDossierSheet constructs from a Source + Case")
+    func sourceDossierSheetConstructor() {
+        let source = Source(
+            id: "s1",
+            outlet: "Reuters",
+            excerpt: "x",
+            publishedOn: Date()
+        )
+        let kase = Case(caseID: "c1", caseNumber: "CASE-26-0503-001", headline: "y")
+        let _: any View = SourceDossierSheet(
+            source: source,
+            kase: kase,
+            appearanceCount: 9,
+            totalCases: 10,
+            onDismiss: {}
+        )
+    }
+
     /// DeepCheckScreen accepts dependency-injected provider, log, and a
     /// dismiss closure so previews and the briefing's fullScreenCover both
     /// drive it.
