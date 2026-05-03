@@ -9,6 +9,7 @@
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:prod": "wrangler deploy --env production",
     "typecheck": "tsc --noEmit",
+    "pretest": "wrangler d1 migrations apply crimeboard-dev --local",
     "test": "vitest run",
     "cf-typegen": "wrangler types"
   },
@@ -18,7 +19,7 @@
     "jose": "^5.9.6"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.5.0",
+    "@cloudflare/vitest-pool-workers": "^0.5.41",
     "@cloudflare/workers-types": "^4.20250101.0",
     "typescript": "^5.5.4",
     "vitest": "^2.1.0",
