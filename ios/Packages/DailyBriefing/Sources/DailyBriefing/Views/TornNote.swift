@@ -23,6 +23,7 @@
 //     already there.
 
 import SwiftUI
+import Models
 import DesignSystem
 
 public struct TornNote: View {

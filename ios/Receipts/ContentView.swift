@@ -6,9 +6,14 @@ import APIClient
 import Models
 import DesignSystem
 import Choreography
+import DeepCheck
 #endif
 
 struct ContentView: View {
+    #if DEBUG
+    @State private var debugDeepCheckCase: Models.Case? = nil
+    #endif
+
     var body: some View {
         NavigationStack {
             DailyBriefingScreen()
@@ -18,6 +23,21 @@ struct ContentView: View {
         .overlay(alignment: .bottomTrailing) {
             DevToolsButton()
                 .padding()
+        }
+        // Launch-arg shortcut so the simulator screenshot harness can land
+        // directly on Deep Check without needing to tap a pin. Pass
+        // `-DeepCheckCaseID mock-headline-N` via `xcrun simctl launch`.
+        .task {
+            if let id = UserDefaults.standard.string(forKey: "DeepCheckCaseID") {
+                let provider = DailyBriefing.MockProvider()
+                if let cases = try? await provider.roster(for: Date()),
+                   let match = cases.first(where: { $0.caseID == id }) {
+                    debugDeepCheckCase = match
+                }
+            }
+        }
+        .fullScreenCover(item: $debugDeepCheckCase) { kase in
+            DeepCheckScreen(kase: kase) { debugDeepCheckCase = nil }
         }
         #endif
     }

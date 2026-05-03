@@ -38,6 +38,8 @@ packages:
     path: Packages/Choreography
   DailyBriefing:
     path: Packages/DailyBriefing
+  DeepCheck:
+    path: Packages/DeepCheck
 
 targets:
   Receipts:
@@ -55,6 +57,7 @@ targets:
       - package: DesignSystem
       - package: Choreography
       - package: DailyBriefing
+      - package: DeepCheck
     settings:
       base:
         PRODUCT_NAME: Receipts

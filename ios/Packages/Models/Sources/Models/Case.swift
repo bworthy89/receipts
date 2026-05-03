@@ -1,7 +1,9 @@
 // MARK: - Case
 //
-// A pin on the daily-briefing board. UI-driving model for now; will map to a
-// backend wire format when Deep Check ships and the API surfaces real cases.
+// A case file shared across feature surfaces — pinned to the cork board on
+// `DailyBriefing`, opened for investigation on `DeepCheck`, archived on the
+// future Archive surface. Lives in `Models` so feature packages can pass
+// cases between each other without one depending on the other.
 //
 // Per the 2026-05-03 daily-briefing brief §6:
 //   • Headline-only at the briefing layer (no thumbnail, no outlets, no stamp

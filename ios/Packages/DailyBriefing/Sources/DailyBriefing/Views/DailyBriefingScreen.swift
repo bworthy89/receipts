@@ -19,8 +19,10 @@
 // same day = no replay."
 
 import SwiftUI
+import Models
 import DesignSystem
 import Choreography
+import DeepCheck
 
 public struct DailyBriefingScreen: View {
 
@@ -31,6 +33,7 @@ public struct DailyBriefingScreen: View {
     @State private var state: ScreenState = .loading
     @State private var didStage: Bool = false
     @State private var rosterDate: Date = Date()
+    @State private var openCase: Case? = nil
 
     /// Initialise the screen.
     /// - Parameters:
@@ -71,6 +74,19 @@ public struct DailyBriefingScreen: View {
                 .ignoresSafeArea()
         }
         .task { await loadIfNeeded() }
+        #if os(iOS)
+        // fullScreenCover for tap-into-Deep-Check. Per the 2026-05-03
+        // deep-check brief §7: "Entry: tapping a pin in DailyBriefingScreen
+        // triggers fullScreenCover presenting DeepCheckScreen(case:)."
+        // iOS-only: macOS has no concept of a fullScreenCover. The package
+        // builds for macOS so tests can run on the host; the cover branch
+        // only ships on the real device target.
+        .fullScreenCover(item: $openCase) { kase in
+            DeepCheckScreen(kase: kase) {
+                openCase = nil
+            }
+        }
+        #endif
     }
 
     // MARK: - Content
@@ -149,8 +165,8 @@ public struct DailyBriefingScreen: View {
         let note = TornNote(kase, position: index + 1, total: total)
             .rotationEffect(placement.rotation)
 
-        NavigationLink {
-            DeepCheckPlaceholder(kase)
+        Button {
+            openCase = kase
         } label: {
             Group {
                 if didStage {

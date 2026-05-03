@@ -1,6 +1,7 @@
 import Testing
 import SwiftUI
 import Foundation
+import Models
 @testable import DailyBriefing
 
 /// Smoke tests for the DailyBriefing SwiftUI surface — guard against API
@@ -28,12 +29,6 @@ struct ViewSmokeTests {
     func dateStampConstructor() {
         let date = Calendar(identifier: .gregorian).date(from: DateComponents(year: 2026, month: 5, day: 3)) ?? Date()
         let _: any View = DateStamp(date: date)
-    }
-
-    @Test("DeepCheckPlaceholder constructs from a Case")
-    func deepCheckPlaceholder() {
-        let kase = Case(caseID: "x", caseNumber: "CASE-26-0503-001", headline: "y")
-        let _: any View = DeepCheckPlaceholder(kase)
     }
 
     /// DailyBriefingScreen accepts dependency-injected provider, gate, and

@@ -15,6 +15,7 @@
 // data.
 
 import Foundation
+import Models
 
 public struct MockProvider: DailyBriefingProvider {
 
@@ -39,8 +40,11 @@ public struct MockProvider: DailyBriefingProvider {
         return shuffled.enumerated().map { (slot, originalIndex) in
             let entry = baseHeadlines[originalIndex]
             let serial = String(format: "%03d", slot + 1)
+            // caseID is stable per-headline (does NOT include the day) so
+            // DeepCheck's mock provider can match an investigation to a
+            // briefing pin by ID. The display caseNumber still rotates daily.
             return Case(
-                caseID: "mock-\(dayKey)-\(originalIndex)",
+                caseID: "mock-headline-\(originalIndex)",
                 caseNumber: "CASE-26-\(dayStamp)-\(serial)",
                 headline: entry.headline,
                 verdict: entry.verdict

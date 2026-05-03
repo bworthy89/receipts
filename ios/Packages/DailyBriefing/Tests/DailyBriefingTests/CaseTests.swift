@@ -1,4 +1,5 @@
 import Testing
+import Models
 @testable import DailyBriefing
 
 @Suite("Case model")
