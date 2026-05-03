@@ -2,12 +2,14 @@ import SwiftUI
 import APIClient
 import Models
 import DesignSystem
+import Choreography
 
 struct ContentView: View {
     @State private var status: ProbeStatus = .idle
 
     #if DEBUG
     @State private var showingCatalog = false
+    @State private var showingChoreography = false
     #endif
 
     enum ProbeStatus: Sendable, Equatable {
@@ -55,6 +57,11 @@ struct ContentView: View {
                 showingCatalog = true
             }
             .buttonStyle(.bordered)
+
+            Button("View Choreography Catalog") {
+                showingChoreography = true
+            }
+            .buttonStyle(.bordered)
             #endif
         }
         .padding()
@@ -64,6 +71,9 @@ struct ContentView: View {
         #if DEBUG
         .sheet(isPresented: $showingCatalog) {
             DesignSystemCatalog()
+        }
+        .sheet(isPresented: $showingChoreography) {
+            ChoreographyCatalog()
         }
         #endif
     }

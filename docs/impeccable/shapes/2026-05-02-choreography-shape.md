@@ -1,5 +1,11 @@
 # Design Brief — receipts `Choreography` (v1)
 
+> **SUPERSEDED 2026-05-03** by [`2026-05-03-choreography-shape.md`](./2026-05-03-choreography-shape.md).
+> The 2026-05-03 re-shape intentionally reverses two decisions in this brief: the timing token enum (replaced by per-motion natural durations + per-call duration override) and the screen-level Reduce Motion toggle (replaced by a per-cell sticker-pin that overrides `accessibilityReduceMotion` in the catalog cell's environment only — the motion views themselves still always read `MotionMode` with no escape hatch). Additive decisions from this brief (anchor-preference geometry, dedicated views + thin modifier layer, internal `ReceiptsHaptic` helper, MARK doc style, sound deferred to v1.5) carry forward.
+> The text below is preserved as historical record. **Do not implement against this file.**
+
+---
+
 > **Output of `$impeccable shape Choreography` on 2026-05-02. Confirmed by user.**
 > Hand off to `$impeccable craft Choreography` for implementation. See [`/AGENTS.md`](../../../AGENTS.md), [`/PRODUCT.md`](../../../PRODUCT.md), [`/DESIGN.md`](../../../DESIGN.md), and the sibling [`2026-05-02-designsystem-shape.md`](./2026-05-02-designsystem-shape.md) for the canonical context this brief sits on top of.
 

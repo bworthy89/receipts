@@ -34,6 +34,8 @@ packages:
     path: Packages/OnDeviceAI
   DesignSystem:
     path: Packages/DesignSystem
+  Choreography:
+    path: Packages/Choreography
 
 targets:
   Receipts:
@@ -49,6 +51,7 @@ targets:
       - package: PersistenceKit
       - package: OnDeviceAI
       - package: DesignSystem
+      - package: Choreography
     settings:
       base:
         PRODUCT_NAME: Receipts
