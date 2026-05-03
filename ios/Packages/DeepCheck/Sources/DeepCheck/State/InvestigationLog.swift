@@ -12,9 +12,11 @@
 // than reading UserDefaults.standard directly. The default `live()` factory
 // wires it to the real one.
 //
-// Storage shape: a comma-separated list of investigated caseIDs in a single
-// UserDefaults string. Comma-separated rather than `array(forKey:)` so the
-// Store protocol stays string-keyed and matches `StagingGate`'s pattern.
+// Storage shape: a JSON-encoded `[String]` in a single UserDefaults string.
+// JSON-encoded rather than a comma-separated list so the storage doesn't
+// break if a future real provider uses a caseID containing the delimiter
+// character. The Store protocol stays string-keyed (and matches
+// `StagingGate`'s pattern); JSON-handling lives inside `InvestigationLog`.
 
 import Foundation
 
@@ -55,14 +57,25 @@ public final class InvestigationLog: @unchecked Sendable {
     }
 
     private func investigatedSet() -> Set<String> {
-        guard let raw = store.string(forKey: key), !raw.isEmpty else { return [] }
-        return Set(raw.split(separator: ",").map(String.init))
+        guard
+            let raw = store.string(forKey: key),
+            !raw.isEmpty,
+            let data = raw.data(using: .utf8),
+            let decoded = try? JSONDecoder().decode([String].self, from: data)
+        else { return [] }
+        return Set(decoded)
     }
 
     private func serialize(_ ids: Set<String>) -> String {
-        // Sorted so the stored value is stable for inspection during dev;
-        // not load-bearing for correctness.
-        ids.sorted().joined(separator: ",")
+        // Sorted so the stored value is stable for inspection during dev
+        // (not load-bearing for correctness, but useful when grepping the
+        // UserDefaults plist).
+        let sorted = ids.sorted()
+        guard
+            let data = try? JSONEncoder().encode(sorted),
+            let raw = String(data: data, encoding: .utf8)
+        else { return "[]" }
+        return raw
     }
 }
 
