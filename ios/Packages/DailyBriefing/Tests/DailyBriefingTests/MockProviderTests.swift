@@ -132,4 +132,31 @@ struct SeededRNGTests {
         }
         #expect(sawNonZero)
     }
+
+    /// `seed(from:)` is the process-stable string→seed bridge used by the
+    /// torn-paper shape. Same string MUST produce the same seed across calls
+    /// — Swift's built-in `Hasher` is randomly seeded per process, which is
+    /// the bug this method exists to avoid.
+    @Test("seed(from:) is process-stable for the same string")
+    func seedFromStringStable() {
+        let a = SeededRNG.seed(from: "mock-20260503-7")
+        let b = SeededRNG.seed(from: "mock-20260503-7")
+        #expect(a == b)
+    }
+
+    /// Different strings produce different seeds (so each pin's tear shape
+    /// is distinct).
+    @Test("seed(from:) varies across distinct inputs")
+    func seedFromStringDiffers() {
+        let a = SeededRNG.seed(from: "case-1")
+        let b = SeededRNG.seed(from: "case-2")
+        #expect(a != b)
+    }
+
+    /// Empty input is allowed (returns the initial state). Smoke check that
+    /// the for-loop over an empty utf8 sequence doesn't crash.
+    @Test("seed(from:) handles empty string")
+    func seedFromEmptyString() {
+        _ = SeededRNG.seed(from: "")
+    }
 }

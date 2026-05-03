@@ -26,19 +26,30 @@ public struct DailyBriefingScreen: View {
 
     private let provider: any DailyBriefingProvider
     private let stagingGate: StagingGate
-    private let now: Date
+    private let clock: @Sendable () -> Date
 
     @State private var state: ScreenState = .loading
     @State private var didStage: Bool = false
+    @State private var rosterDate: Date = Date()
 
+    /// Initialise the screen.
+    /// - Parameters:
+    ///   - provider: Roster source. Defaults to `MockProvider` until the real
+    ///     backend wire is added.
+    ///   - stagingGate: First-per-day gate. Defaults to a UserDefaults-backed
+    ///     live gate.
+    ///   - clock: Read fresh on every roster load so a long foreground
+    ///     session that crosses midnight doesn't show yesterday's briefing
+    ///     while the staging gate is firing for today. Tests inject a fixed
+    ///     clock for determinism.
     public init(
         provider: any DailyBriefingProvider = MockProvider(),
         stagingGate: StagingGate = .live(),
-        now: Date = Date()
+        clock: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.provider = provider
         self.stagingGate = stagingGate
-        self.now = now
+        self.clock = clock
     }
 
     public var body: some View {
@@ -98,7 +109,7 @@ public struct DailyBriefingScreen: View {
             let placements = PinLayout.layout(
                 count: cases.count,
                 boardWidth: geo.size.width,
-                seed: PinLayout.seed(for: now)
+                seed: PinLayout.seed(for: rosterDate)
             )
             let contentHeight = PinLayout.contentHeight(forCount: cases.count)
 
@@ -113,7 +124,7 @@ public struct DailyBriefingScreen: View {
                     // happens to be behind it.
                     ForEach(Array(cases.enumerated()), id: \.element.id) { (index, kase) in
                         let placement = placements[index]
-                        pin(kase, placement: placement, index: index)
+                        pin(kase, placement: placement, index: index, total: cases.count)
                     }
 
                     dateStamp
@@ -129,13 +140,13 @@ public struct DailyBriefingScreen: View {
         // opacity 0 → 1) on first-per-day. The modifier is unconditional but
         // it self-skips when `staged: false`, so the static-day case renders
         // immediately without the slam state.
-        DateStamp(date: now)
+        DateStamp(date: rosterDate)
             .modifier(SlamOnAppear(delay: .milliseconds(250), staged: didStage))
     }
 
     @ViewBuilder
-    private func pin(_ kase: Case, placement: PinPlacement, index: Int) -> some View {
-        let note = TornNote(kase)
+    private func pin(_ kase: Case, placement: PinPlacement, index: Int, total: Int) -> some View {
+        let note = TornNote(kase, position: index + 1, total: total)
             .rotationEffect(placement.rotation)
 
         NavigationLink {
@@ -180,6 +191,12 @@ public struct DailyBriefingScreen: View {
     // MARK: - Loading
 
     private func loadIfNeeded(force: Bool = false) async {
+        // Read the clock fresh every load so a long foreground session that
+        // crosses midnight loads the new day's roster + layout seed; the
+        // staging gate uses its own live clock for the same reason.
+        let liveNow = clock()
+        rosterDate = liveNow
+
         if !force {
             // Decide staging once on first arrival. The view always renders a
             // dimmer overlay at first frame; the next step either ramps it
@@ -194,7 +211,7 @@ public struct DailyBriefingScreen: View {
         }
 
         do {
-            let cases = try await provider.roster(for: now)
+            let cases = try await provider.roster(for: liveNow)
             if cases.isEmpty {
                 state = .empty
             } else {

@@ -28,9 +28,13 @@ import DesignSystem
 public struct TornNote: View {
 
     let kase: Case
+    let position: Int
+    let total: Int
 
-    public init(_ kase: Case) {
+    public init(_ kase: Case, position: Int, total: Int) {
         self.kase = kase
+        self.position = position
+        self.total = total
     }
 
     public var body: some View {
@@ -81,13 +85,18 @@ public struct TornNote: View {
         .accessibilityLabel(Text(accessibilityDescription))
     }
 
-    /// Stable per-pin tear pattern — derived from the case ID hash.
+    /// Stable per-pin tear pattern — derived from the case ID via
+    /// `SeededRNG.seed(from:)` rather than Swift's `Hasher` (which is
+    /// process-randomized and would change the tear shape on every cold
+    /// launch, breaking the stable-pattern guarantee).
     private var paperSeed: UInt64 {
-        var hasher = Hasher()
-        hasher.combine(kase.caseID)
-        return UInt64(bitPattern: Int64(hasher.finalize()))
+        SeededRNG.seed(from: kase.caseID)
     }
 
+    /// Per the 2026-05-03 brief §8 VoiceOver:
+    ///   "Case [N] of 10. [Headline]. [state]. Double-tap to open."
+    /// `position` and `total` are wired in by `DailyBriefingScreen` so
+    /// VoiceOver users know how far through the board they are.
     private var accessibilityDescription: String {
         let stateClause: String
         switch kase.verdict {
@@ -96,7 +105,7 @@ public struct TornNote: View {
         case .coldCase:  stateClause = "Investigated, cold case."
         case nil:        stateClause = "Untouched."
         }
-        return "\(kase.headline). \(stateClause) Double-tap to open."
+        return "Case \(position) of \(total). \(kase.headline). \(stateClause) Double-tap to open."
     }
 }
 

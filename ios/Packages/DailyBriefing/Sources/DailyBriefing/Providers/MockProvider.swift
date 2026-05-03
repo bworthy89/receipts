@@ -101,4 +101,25 @@ public struct SeededRNG: RandomNumberGenerator {
         z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
         return z ^ (z >> 31)
     }
+
+    /// Stable, process-independent hash of a string's UTF-8 bytes.
+    ///
+    /// Use this instead of `Hasher` whenever a seed must be the same across
+    /// app launches (e.g. per-pin paper-tear shapes that should be stable so
+    /// a returning user sees "the same note" on the cork). Swift's `Hasher`
+    /// is randomly seeded per-process and is not suitable for that.
+    ///
+    /// Mixes each byte into the splitmix64 finalizer, which is the same
+    /// chunked-mix shape `next()` uses, so the seed quality matches what
+    /// `init(seed:)` consumers expect.
+    public static func seed(from string: String) -> UInt64 {
+        var state: UInt64 = 0x9E37_79B9_7F4A_7C15
+        for byte in string.utf8 {
+            state = state &+ UInt64(byte)
+            state = (state ^ (state >> 30)) &* 0xBF58_476D_1CE4_E5B9
+            state = (state ^ (state >> 27)) &* 0x94D0_49BB_1331_11EB
+            state = state ^ (state >> 31)
+        }
+        return state
+    }
 }

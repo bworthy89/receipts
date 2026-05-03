@@ -12,11 +12,16 @@
 //   "Pin layout algorithm. Random within constraints (with seeded RNG so it's
 //    stable per day) vs hand-tuned positions. Lean seeded-random."
 //
-// The shape: two column centerlines at 30% and 70% of board width. Each row
+// The shape: two column centerlines at 25% and 75% of board width. Each row
 // holds two pins, alternating which side leads. Per-pin x-nudge and y-jitter
 // give the asymmetric corkboard feel; per-pin rotation supplies the small
 // physical-tilt cue. Same seed → same layout, so the morning briefing is the
 // same across re-renders within a day.
+//
+// Column centerlines were tuned during craft: 30%/70% put the right column
+// inside the date-stamp footprint, so they were widened to 25%/75% and the
+// per-pin x-jitter narrowed to keep horizontal overlap under control on
+// iPhone-narrow viewports.
 
 import Foundation
 import CoreGraphics

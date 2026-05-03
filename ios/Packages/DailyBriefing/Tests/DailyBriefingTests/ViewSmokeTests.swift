@@ -20,8 +20,8 @@ struct ViewSmokeTests {
             headline: "y",
             verdict: .confirmed
         )
-        let _: any View = TornNote(untouched)
-        let _: any View = TornNote(stamped)
+        let _: any View = TornNote(untouched, position: 1, total: 10)
+        let _: any View = TornNote(stamped, position: 2, total: 10)
     }
 
     @Test("DateStamp constructs with explicit calendar")
@@ -41,10 +41,11 @@ struct ViewSmokeTests {
     @Test("DailyBriefingScreen constructs with injected dependencies")
     func dailyBriefingScreenConstructor() {
         let _: any View = DailyBriefingScreen()
+        let fixedDate = Date()
         let _: any View = DailyBriefingScreen(
             provider: MockProvider(),
             stagingGate: StagingGate(store: InMemoryStore()),
-            now: Date()
+            clock: { fixedDate }
         )
     }
 }
