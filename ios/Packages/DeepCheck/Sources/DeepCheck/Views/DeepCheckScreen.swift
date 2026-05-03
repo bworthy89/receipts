@@ -92,6 +92,10 @@ public struct DeepCheckScreen: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.boardMargin)
                 Button {
+                    // Reset to .loading immediately on tap so the user sees
+                    // the retry actually start; otherwise the error view
+                    // hangs visually until the load finishes.
+                    loadState = .loading
                     Task { await load(force: true) }
                 } label: {
                     Text("TAP TO RETRY")
@@ -107,7 +111,9 @@ public struct DeepCheckScreen: View {
     }
 
     private func load(force: Bool = false) async {
-        if !force { loadState = .loading }
+        // Always reset to .loading at the start of a load so retries
+        // (force=true) get the same visual treatment as the initial fetch.
+        loadState = .loading
         do {
             let inv = try await provider.investigation(for: kase)
             // Decide replay vs skip BEFORE marking. Mark on first arrival
@@ -276,6 +282,10 @@ private struct SettledBoard: View {
                 }
             }
             .frame(height: SourceLayout.boardHeight)
+            // The strings are decorative; the source pins themselves carry
+            // the relationship semantically via their accessibility labels.
+            // Hiding the canvas keeps VoiceOver focused on the pins.
+            .accessibilityHidden(true)
 
             // Sources.
             ForEach(Array(investigation.sources.enumerated()), id: \.element.id) { (i, source) in
