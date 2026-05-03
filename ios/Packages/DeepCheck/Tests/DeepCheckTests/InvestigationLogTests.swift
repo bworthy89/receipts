@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import Models
 @testable import DeepCheck
 
 @Suite("InvestigationLog")
@@ -7,38 +8,41 @@ struct InvestigationLogTests {
 
     @Test("Fresh log: should play any case")
     func freshLogPlays() {
-        let store = MemoryStore()
-        let log = InvestigationLog(store: store)
+        let log = InvestigationLog(store: MemoryStore())
         #expect(log.shouldPlay(caseID: "case-1"))
         #expect(log.shouldPlay(caseID: "case-2"))
     }
 
-    @Test("After markPlayed, that case skips on revisit")
+    @Test("After markInvestigated, that case skips on revisit")
     func markedCaseSkipsRevisit() {
-        let store = MemoryStore()
-        let log = InvestigationLog(store: store)
+        let log = InvestigationLog(store: MemoryStore())
         #expect(log.shouldPlay(caseID: "case-1"))
-        log.markPlayed(caseID: "case-1")
+        log.markInvestigated(Self.entry(caseID: "case-1"))
         #expect(!log.shouldPlay(caseID: "case-1"))
     }
 
     @Test("Other cases still play after one is marked")
     func othersStillPlay() {
-        let store = MemoryStore()
-        let log = InvestigationLog(store: store)
-        log.markPlayed(caseID: "case-1")
+        let log = InvestigationLog(store: MemoryStore())
+        log.markInvestigated(Self.entry(caseID: "case-1"))
         #expect(!log.shouldPlay(caseID: "case-1"))
         #expect(log.shouldPlay(caseID: "case-2"))
         #expect(log.shouldPlay(caseID: "case-3"))
     }
 
-    @Test("markPlayed is idempotent")
-    func markIdempotent() {
-        let store = MemoryStore()
-        let log = InvestigationLog(store: store)
-        log.markPlayed(caseID: "case-1")
-        log.markPlayed(caseID: "case-1")
-        #expect(!log.shouldPlay(caseID: "case-1"))
+    /// Re-marking the same case overwrites with the new entry — the schema
+    /// is keyed by caseID, last-write-wins. Deliberate: lets tests inject
+    /// fixed dates and lets a future "re-investigate" flow update verdict.
+    @Test("markInvestigated is idempotent and overwrites")
+    func markIdempotentOverwrites() {
+        let log = InvestigationLog(store: MemoryStore())
+        let first = Self.entry(caseID: "case-1", verdict: .confirmed)
+        let second = Self.entry(caseID: "case-1", verdict: .busted)
+        log.markInvestigated(first)
+        log.markInvestigated(second)
+
+        let stored = log.entry(for: "case-1")
+        #expect(stored?.verdict == .busted)
     }
 
     /// Log persists across InvestigationLog instances backed by the same
@@ -48,70 +52,96 @@ struct InvestigationLogTests {
     func surviveAcrossInstances() {
         let store = MemoryStore()
         let log1 = InvestigationLog(store: store)
-        log1.markPlayed(caseID: "case-1")
+        log1.markInvestigated(Self.entry(caseID: "case-1"))
 
         let log2 = InvestigationLog(store: store)
         #expect(!log2.shouldPlay(caseID: "case-1"))
         #expect(log2.shouldPlay(caseID: "case-2"))
+        #expect(log2.entry(for: "case-1")?.headline == "Stub headline")
     }
 
-    /// The serialized stored value is a JSON-encoded `[String]`, sorted
-    /// for stable dev-time inspection. JSON rather than a delimiter-
-    /// separated list so the storage doesn't break if a real provider ever
-    /// uses a caseID containing the delimiter.
-    @Test("Serialized form is JSON-encoded, sorted")
-    func serializedShape() {
+    /// `count` returns the number of investigated cases — drives the
+    /// briefing's "ARCHIVE · N FILED" footer.
+    @Test("count reflects investigated cases")
+    func countReflectsInvestigated() {
+        let log = InvestigationLog(store: MemoryStore())
+        #expect(log.count == 0)
+        log.markInvestigated(Self.entry(caseID: "a"))
+        log.markInvestigated(Self.entry(caseID: "b"))
+        log.markInvestigated(Self.entry(caseID: "c"))
+        #expect(log.count == 3)
+    }
+
+    /// `allEntries` returns every archived entry. Used by Archive's
+    /// rendering to enumerate the polaroid stack.
+    @Test("allEntries returns every entry")
+    func allEntriesEnumerates() {
+        let log = InvestigationLog(store: MemoryStore())
+        log.markInvestigated(Self.entry(caseID: "a", verdict: .confirmed))
+        log.markInvestigated(Self.entry(caseID: "b", verdict: .busted))
+        let ids = Set(log.allEntries().map(\.caseID))
+        #expect(ids == ["a", "b"])
+    }
+
+    /// Round-trip preserves all fields. Per the brief §4 schema upgrade —
+    /// the log IS the archive's source of truth, so every field has to
+    /// survive serialization cleanly.
+    @Test("ArchiveEntry round-trips through storage")
+    func entryRoundTripsAllFields() {
         let store = MemoryStore()
-        let log = InvestigationLog(store: store, key: "test.key")
-        log.markPlayed(caseID: "b")
-        log.markPlayed(caseID: "a")
-        log.markPlayed(caseID: "c")
-        #expect(store.string(forKey: "test.key") == #"["a","b","c"]"#)
+        let log1 = InvestigationLog(store: store)
+        let original = ArchiveEntry(
+            caseID: "case-1",
+            caseNumber: "CASE-26-0503-007",
+            headline: "Some \"quoted\" headline with, commas",
+            verdict: .coldCase,
+            investigatedOn: Date(timeIntervalSince1970: 1_756_080_000)
+        )
+        log1.markInvestigated(original)
+
+        let log2 = InvestigationLog(store: store)
+        #expect(log2.entry(for: "case-1") == original)
     }
 
-    /// CaseIDs containing commas, brackets, quotes, or other special chars
-    /// must round-trip cleanly. The pre-fix comma-separated format silently
-    /// corrupted IDs containing commas — JSON encoding is robust.
-    @Test("CaseIDs with special characters round-trip cleanly")
-    func specialCharsRoundTrip() {
+    /// Legacy v2 storage (`["case-a","case-b"]` JSON array) fails open to
+    /// empty rather than crashing — same fail-open contract as the v1→v2
+    /// (comma → JSON) migration.
+    @Test("Legacy [String] storage is treated as empty")
+    func legacyArrayIsEmpty() {
         let store = MemoryStore()
-        let weirdIDs = [
-            "case,with,commas",
-            "case\"with\"quotes",
-            "case[with]brackets",
-            "case\\with\\backslashes",
-            "case-with-newlines\nand-tabs\t",
-        ]
+        store.set(#"["case-a","case-b"]"#, forKey: "DeepCheck.investigatedCases")
 
-        do {
-            let log = InvestigationLog(store: store, key: "test.key")
-            for id in weirdIDs {
-                log.markPlayed(caseID: id)
-            }
-        }
-
-        // Re-create from the same store to confirm persistence + parse path.
-        let log2 = InvestigationLog(store: store, key: "test.key")
-        for id in weirdIDs {
-            #expect(!log2.shouldPlay(caseID: id), "expected \(id) to be marked played")
-        }
-        #expect(log2.shouldPlay(caseID: "untouched-id"))
+        let log = InvestigationLog(store: store)
+        #expect(log.shouldPlay(caseID: "case-a"))
+        #expect(log.allEntries().isEmpty)
     }
 
-    /// A corrupt store value (legacy comma-separated, hand-edited, etc.)
-    /// must not crash; the log treats it as empty and rebuilds from there.
+    /// A corrupt or hand-edited stored value must not crash.
     @Test("Corrupt store value is treated as empty, not crashed")
     func corruptStoreIsEmpty() {
         let store = MemoryStore()
-        store.set("not-valid-json,whatever", forKey: "test.key")
+        store.set("not-valid-json{whatever", forKey: "DeepCheck.investigatedCases")
 
-        let log = InvestigationLog(store: store, key: "test.key")
+        let log = InvestigationLog(store: store)
         #expect(log.shouldPlay(caseID: "any-id"))
 
-        // Marking a new case should overwrite with valid JSON; subsequent
-        // reads round-trip.
-        log.markPlayed(caseID: "case-1")
+        log.markInvestigated(Self.entry(caseID: "case-1"))
         #expect(!log.shouldPlay(caseID: "case-1"))
+    }
+
+    // MARK: - Helpers
+
+    private static func entry(
+        caseID: String,
+        verdict: Case.Verdict = .confirmed
+    ) -> ArchiveEntry {
+        ArchiveEntry(
+            caseID: caseID,
+            caseNumber: "CASE-26-0503-001",
+            headline: "Stub headline",
+            verdict: verdict,
+            investigatedOn: Date(timeIntervalSince1970: 1_756_080_000)
+        )
     }
 }
 

@@ -1,24 +1,22 @@
 // MARK: - InvestigationLog
 //
-// Per-case played-already gate. Decides whether `DeepCheckScreen` should play
-// the full 4-motion sequence (first investigation of this case) or skip
-// straight to the settled board (revisit).
+// Per-case played-already gate AND archive-entry store. Decides whether
+// `DeepCheckScreen` should play the full 4-motion sequence (first
+// investigation of this case) or skip straight to the settled board
+// (revisit). Also retains the case + verdict snapshot per investigation
+// so `Archive` can render its polaroid stack without a provider hop.
 //
-// Per the 2026-05-03 brief §7 Interaction Model:
-//   "Replay decision: InvestigationLog keyed by caseID + UserDefaults. First
-//    tap plays; subsequent skip. Cleared at fresh-install only."
+// Schema upgrade (2026-05-03 archive-shape brief §4): storage shifted
+// from a JSON-encoded `[String]` of caseIDs to a JSON-encoded
+// `[caseID: ArchiveEntry]` dict. Old format fails open to empty —
+// same fail-open behaviour as the v1→v2 (comma → JSON) migration.
 //
 // Pure logic, testable on the macOS host: takes a key-value store rather
 // than reading UserDefaults.standard directly. The default `live()` factory
 // wires it to the real one.
-//
-// Storage shape: a JSON-encoded `[String]` in a single UserDefaults string.
-// JSON-encoded rather than a comma-separated list so the storage doesn't
-// break if a future real provider uses a caseID containing the delimiter
-// character. The Store protocol stays string-keyed (and matches
-// `StagingGate`'s pattern); JSON-handling lives inside `InvestigationLog`.
 
 import Foundation
+import Models
 
 public final class InvestigationLog: @unchecked Sendable {
 
@@ -35,7 +33,7 @@ public final class InvestigationLog: @unchecked Sendable {
 
     public init(
         store: any Store,
-        key: String = "DeepCheck.investigatedCaseIDs"
+        key: String = "DeepCheck.investigatedCases"
     ) {
         self.store = store
         self.key = key
@@ -45,38 +43,133 @@ public final class InvestigationLog: @unchecked Sendable {
     /// screen should play the full sequence. Returns false on revisit; the
     /// screen should skip to the settled board.
     public func shouldPlay(caseID: String) -> Bool {
-        !investigatedSet().contains(caseID)
+        loadEntries()[caseID] == nil
     }
 
-    /// Records that a case has been investigated. Idempotent — calling twice
-    /// for the same caseID is fine.
-    public func markPlayed(caseID: String) {
-        var ids = investigatedSet()
-        ids.insert(caseID)
-        store.set(serialize(ids), forKey: key)
+    /// Records a completed investigation. Snapshot of the case + verdict at
+    /// investigation time so the archive can render without depending on
+    /// the provider's current state.
+    public func markInvestigated(_ entry: ArchiveEntry) {
+        var entries = loadEntries()
+        entries[entry.caseID] = entry
+        save(entries)
     }
 
-    private func investigatedSet() -> Set<String> {
+    /// Returns the archive entry for a single case, or nil if not yet
+    /// investigated.
+    public func entry(for caseID: String) -> ArchiveEntry? {
+        loadEntries()[caseID]
+    }
+
+    /// All archived entries. Order is unspecified — callers (e.g. `Archive`)
+    /// sort by `investigatedOn` themselves.
+    public func allEntries() -> [ArchiveEntry] {
+        Array(loadEntries().values)
+    }
+
+    /// Number of cases on file. Drives the briefing's
+    /// "ARCHIVE · N FILED" footer caption.
+    public var count: Int {
+        loadEntries().count
+    }
+
+    // MARK: - Storage
+
+    private func loadEntries() -> [String: ArchiveEntry] {
         guard
             let raw = store.string(forKey: key),
             !raw.isEmpty,
-            let data = raw.data(using: .utf8),
-            let decoded = try? JSONDecoder().decode([String].self, from: data)
-        else { return [] }
-        return Set(decoded)
+            let data = raw.data(using: .utf8)
+        else { return [:] }
+        // Try the current schema first.
+        if let decoded = try? JSONDecoder.archive.decode([String: ArchiveEntry].self, from: data) {
+            return decoded
+        }
+        // Fail-open for any earlier schema (v1 comma-separated, v2 JSON
+        // [String]). The next markInvestigated call overwrites with the
+        // current schema; users lose any prior unmarked-rich state, which
+        // doesn't exist in practice for the v1→v3 jump (no real users yet).
+        return [:]
     }
 
-    private func serialize(_ ids: Set<String>) -> String {
-        // Sorted so the stored value is stable for inspection during dev
-        // (not load-bearing for correctness, but useful when grepping the
-        // UserDefaults plist).
-        let sorted = ids.sorted()
+    private func save(_ entries: [String: ArchiveEntry]) {
         guard
-            let data = try? JSONEncoder().encode(sorted),
+            let data = try? JSONEncoder.archive.encode(entries),
             let raw = String(data: data, encoding: .utf8)
-        else { return "[]" }
-        return raw
+        else { return }
+        store.set(raw, forKey: key)
     }
+}
+
+// MARK: - ArchiveEntry
+//
+// One investigated case as stored in the log. Snapshot of the case data
+// (caseNumber, headline) at investigation time so the archive doesn't need
+// to query a provider to render — the data lives with the log entry. The
+// verdict and investigatedOn round out the per-card content.
+
+public struct ArchiveEntry: Sendable, Equatable, Identifiable, Codable {
+    public let caseID: String
+    public let caseNumber: String
+    public let headline: String
+    public let verdict: Case.Verdict
+    public let investigatedOn: Date
+
+    public var id: String { caseID }
+
+    public init(
+        caseID: String,
+        caseNumber: String,
+        headline: String,
+        verdict: Case.Verdict,
+        investigatedOn: Date
+    ) {
+        self.caseID = caseID
+        self.caseNumber = caseNumber
+        self.headline = headline
+        self.verdict = verdict
+        self.investigatedOn = investigatedOn
+    }
+}
+
+// MARK: - Codable on Verdict
+
+extension Case.Verdict: Codable {
+    public init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        guard let v = Self(rawValue: raw) else {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unknown verdict raw value: \(raw)"
+            ))
+        }
+        self = v
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        try c.encode(rawValue)
+    }
+}
+
+// MARK: - Shared encoders/decoders
+
+extension JSONEncoder {
+    /// ISO8601 dates so the persisted form is human-readable when grepping
+    /// the UserDefaults plist during dev.
+    fileprivate static let archive: JSONEncoder = {
+        let e = JSONEncoder()
+        e.dateEncodingStrategy = .iso8601
+        e.outputFormatting = [.sortedKeys]
+        return e
+    }()
+}
+
+extension JSONDecoder {
+    fileprivate static let archive: JSONDecoder = {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        return d
+    }()
 }
 
 // MARK: - UserDefaults Store

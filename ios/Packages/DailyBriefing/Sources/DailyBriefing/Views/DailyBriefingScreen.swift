@@ -23,17 +23,21 @@ import Models
 import DesignSystem
 import Choreography
 import DeepCheck
+import Archive
 
 public struct DailyBriefingScreen: View {
 
     private let provider: any DailyBriefingProvider
     private let stagingGate: StagingGate
+    private let investigationLog: InvestigationLog
+    private let deepCheckProvider: any DeepCheckProvider
     private let clock: @Sendable () -> Date
 
     @State private var state: ScreenState = .loading
     @State private var didStage: Bool = false
     @State private var rosterDate: Date = Date()
     @State private var openCase: Case? = nil
+    @State private var showingArchive: Bool = false
 
     /// Initialise the screen.
     /// - Parameters:
@@ -48,10 +52,14 @@ public struct DailyBriefingScreen: View {
     public init(
         provider: any DailyBriefingProvider = MockProvider(),
         stagingGate: StagingGate = .live(),
+        investigationLog: InvestigationLog = .live(),
+        deepCheckProvider: any DeepCheckProvider = DeepCheck.MockProvider(),
         clock: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.provider = provider
         self.stagingGate = stagingGate
+        self.investigationLog = investigationLog
+        self.deepCheckProvider = deepCheckProvider
         self.clock = clock
     }
 
@@ -82,9 +90,22 @@ public struct DailyBriefingScreen: View {
         // builds for macOS so tests can run on the host; the cover branch
         // only ships on the real device target.
         .fullScreenCover(item: $openCase) { kase in
-            DeepCheckScreen(kase: kase) {
-                openCase = nil
-            }
+            DeepCheckScreen(
+                kase: kase,
+                provider: deepCheckProvider,
+                log: investigationLog,
+                clock: clock,
+                onDismiss: { openCase = nil }
+            )
+        }
+        // Archive entry — per the 2026-05-03 archive-shape brief §7.
+        .fullScreenCover(isPresented: $showingArchive) {
+            ArchiveScreen(
+                log: investigationLog,
+                provider: deepCheckProvider,
+                clock: clock,
+                onDismiss: { showingArchive = false }
+            )
         }
         #endif
     }
@@ -130,23 +151,49 @@ public struct DailyBriefingScreen: View {
             let contentHeight = PinLayout.contentHeight(forCount: cases.count)
 
             ScrollView {
-                ZStack(alignment: .topLeading) {
-                    Color.clear
-                        .frame(width: geo.size.width, height: contentHeight)
+                VStack(spacing: 0) {
+                    ZStack(alignment: .topLeading) {
+                        Color.clear
+                            .frame(width: geo.size.width, height: contentHeight)
 
-                    // Pins first, date stamp last so the stamp sits on top in
-                    // z-order. The brief explicitly puts the stamp "slammed
-                    // into the top-right corner" — i.e. on top of whatever
-                    // happens to be behind it.
-                    ForEach(Array(cases.enumerated()), id: \.element.id) { (index, kase) in
-                        let placement = placements[index]
-                        pin(kase, placement: placement, index: index, total: cases.count)
+                        // Pins first, date stamp last so the stamp sits on top in
+                        // z-order. The brief explicitly puts the stamp "slammed
+                        // into the top-right corner" — i.e. on top of whatever
+                        // happens to be behind it.
+                        ForEach(Array(cases.enumerated()), id: \.element.id) { (index, kase) in
+                            let placement = placements[index]
+                            pin(kase, placement: placement, index: index, total: cases.count)
+                        }
+
+                        dateStamp
+                            .position(x: geo.size.width - 90, y: 84)
                     }
 
-                    dateStamp
-                        .position(x: geo.size.width - 90, y: 84)
+                    archiveFooter
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, Spacing.section)
+                        .padding(.bottom, Spacing.stadium)
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var archiveFooter: some View {
+        let count = investigationLog.count
+        if count > 0 {
+            Button {
+                showingArchive = true
+            } label: {
+                Text("ARCHIVE · \(count) FILED")
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .tracking(1.6)
+                    .foregroundStyle(Color.ink.opacity(0.65))
+                    .padding(.horizontal, Spacing.cardPadding)
+                    .padding(.vertical, Spacing.tight)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("View archived cases"))
         }
     }
 

@@ -7,11 +7,13 @@ import Models
 import DesignSystem
 import Choreography
 import DeepCheck
+import Archive
 #endif
 
 struct ContentView: View {
     #if DEBUG
     @State private var debugDeepCheckCase: Models.Case? = nil
+    @State private var debugShowArchive: Bool = false
     #endif
 
     var body: some View {
@@ -28,6 +30,11 @@ struct ContentView: View {
         // directly on Deep Check without needing to tap a pin. Pass
         // `-DeepCheckCaseID mock-headline-N` via `xcrun simctl launch`.
         .task {
+            // Seed the archive with mock entries on first launch so the
+            // ARCHIVE · N FILED footer appears non-empty during demo. Only
+            // runs if the log is empty (never overwrites real investigations).
+            ArchiveMockSeed.seedIfEmpty(.live())
+
             if let id = UserDefaults.standard.string(forKey: "DeepCheckCaseID") {
                 let provider = DailyBriefing.MockProvider()
                 if let cases = try? await provider.roster(for: Date()),
@@ -35,9 +42,15 @@ struct ContentView: View {
                     debugDeepCheckCase = match
                 }
             }
+            if UserDefaults.standard.bool(forKey: "OpenArchive") {
+                debugShowArchive = true
+            }
         }
         .fullScreenCover(item: $debugDeepCheckCase) { kase in
             DeepCheckScreen(kase: kase) { debugDeepCheckCase = nil }
+        }
+        .fullScreenCover(isPresented: $debugShowArchive) {
+            ArchiveScreen(onDismiss: { debugShowArchive = false })
         }
         #endif
     }
