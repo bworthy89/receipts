@@ -77,9 +77,17 @@ public struct PolaroidDevelop<Content: View>: View {
                 // at the track level, but `@KeyframeTrackContentBuilder` does.
                 let total = duration.seconds
 
+                // Reduce-Motion branches use a 1ms keyframe rather than a
+                // 0-duration one. KeyframeAnimator treats a 0-duration track
+                // as a no-op and may leave content stuck at `initialValue`
+                // (opacity 0, fully blurred) on accessibility devices —
+                // exactly the failure greptile flagged. 1ms is visually
+                // instant but registers as a real animation span.
+                let rmTick: TimeInterval = 0.001
+
                 KeyframeTrack(\.opacity) {
                     if reduceMotion {
-                        LinearKeyframe(1.0, duration: 0.0)
+                        LinearKeyframe(1.0, duration: rmTick)
                     } else {
                         // Slow-fast-slow: 30% slow start, 40% fast mid, 30% slow finish.
                         CubicKeyframe(0.05, duration: total * 0.30)
@@ -89,7 +97,7 @@ public struct PolaroidDevelop<Content: View>: View {
                 }
                 KeyframeTrack(\.saturation) {
                     if reduceMotion {
-                        LinearKeyframe(1.0, duration: 0.0)
+                        LinearKeyframe(1.0, duration: rmTick)
                     } else {
                         CubicKeyframe(0.10, duration: total * 0.30)
                         CubicKeyframe(0.85, duration: total * 0.40)
@@ -98,7 +106,7 @@ public struct PolaroidDevelop<Content: View>: View {
                 }
                 KeyframeTrack(\.blur) {
                     if reduceMotion {
-                        LinearKeyframe(0.0, duration: 0.0)
+                        LinearKeyframe(0.0, duration: rmTick)
                     } else {
                         CubicKeyframe(8, duration: total * 0.30)
                         CubicKeyframe(2, duration: total * 0.40)
@@ -109,7 +117,7 @@ public struct PolaroidDevelop<Content: View>: View {
                 // back to 0. Peak sits inside the chemistry-bloom window.
                 KeyframeTrack(\.sepiaTint) {
                     if reduceMotion {
-                        LinearKeyframe(0.0, duration: 0.0)
+                        LinearKeyframe(0.0, duration: rmTick)
                     } else {
                         CubicKeyframe(0.15, duration: total * 0.20)
                         CubicKeyframe(0.35, duration: total * 0.20)

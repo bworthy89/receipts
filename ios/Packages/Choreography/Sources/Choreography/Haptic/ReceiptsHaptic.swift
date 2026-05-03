@@ -42,9 +42,15 @@ struct ReceiptsHaptic {
     /// `RedString` connect — light→medium pair simulating a "twang" at stroke
     /// completion (~860ms into the motion). Replace with CHHapticEngine
     /// continuous pattern in v1.1.
-    static func redStringConnect() async {
+    ///
+    /// Throws `CancellationError` if the parent task is cancelled during the
+    /// 50ms sleep between `.light` and `.medium`, so a view disappearing
+    /// mid-twang doesn't fire the second haptic on a removed view. Callers
+    /// inside a structured `.task { try? await ... }` swallow the error at
+    /// their boundary.
+    static func redStringConnect() async throws {
         play(.light)
-        try? await Task.sleep(for: .milliseconds(50))
+        try await Task.sleep(for: .milliseconds(50))
         play(.medium)
     }
 

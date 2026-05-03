@@ -31,6 +31,7 @@ public struct RedString: View {
 
     private let from: String
     private let to: String
+    private let id: String?
     private let sag: CGFloat
     private let delay: Duration
     private let duration: Duration
@@ -40,6 +41,11 @@ public struct RedString: View {
     /// - Parameters:
     ///   - from: The id of the `.choreographyAnchor("...")` to start the string at.
     ///   - to: The id of the `.choreographyAnchor("...")` to end the string at.
+    ///   - id: Optional disambiguator. The board's overlay tracks each request
+    ///     by id; if two `RedString` views share the same `from`/`to` pair
+    ///     (e.g. parallel arcs in Deep Check), supply distinct ids so SwiftUI's
+    ///     `ForEach` can keep their states separate. Default id is
+    ///     `"<from>→<to>"`, which is sufficient when each pair is unique.
     ///   - sag: Perpendicular drop at the path midpoint, in pt. Default 8pt
     ///     gives a "draped yarn" feel without crossing into "loose cable."
     ///   - delay: Delay before the stroke starts on mount. Used by sequencer
@@ -50,12 +56,14 @@ public struct RedString: View {
     public init(
         from: String,
         to: String,
+        id: String? = nil,
         sag: CGFloat = 8,
         delay: Duration = .zero,
         duration: Duration? = nil
     ) {
         self.from = from
         self.to = to
+        self.id = id
         self.sag = sag
         self.delay = delay
         self.duration = duration ?? ChoreographyTiming.redString
@@ -73,7 +81,7 @@ public struct RedString: View {
                     anchors: [:],
                     requests: [
                         RedStringRequest(
-                            id: "\(from)→\(to)",
+                            id: id ?? "\(from)→\(to)",
                             from: from,
                             to: to,
                             sag: sag,
@@ -137,7 +145,7 @@ struct AnimatingRedString: View {
                 progress = 1
             }
             try await Task.sleep(for: ChoreographyTiming.reducedDuration)
-            await ReceiptsHaptic.redStringConnect()
+            try await ReceiptsHaptic.redStringConnect()
             return
         }
 
@@ -148,7 +156,7 @@ struct AnimatingRedString: View {
         // the eye sees the string snap taut, but not so late that it misses
         // the visual completion.
         try await Task.sleep(for: .seconds(duration.seconds * 0.93))
-        await ReceiptsHaptic.redStringConnect()
+        try await ReceiptsHaptic.redStringConnect()
     }
 }
 
