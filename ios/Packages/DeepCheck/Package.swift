@@ -2,25 +2,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "DailyBriefing",
+    name: "DeepCheck",
     platforms: [.iOS(.v26), .macOS(.v15)],
     products: [
-        .library(name: "DailyBriefing", targets: ["DailyBriefing"]),
+        .library(name: "DeepCheck", targets: ["DeepCheck"]),
     ],
     dependencies: [
         .package(path: "../Models"),
         .package(path: "../DesignSystem"),
         .package(path: "../Choreography"),
-        .package(path: "../DeepCheck"),
     ],
     targets: [
         .target(
-            name: "DailyBriefing",
-            dependencies: ["Models", "DesignSystem", "Choreography", "DeepCheck"]
+            name: "DeepCheck",
+            dependencies: ["Models", "DesignSystem", "Choreography"]
         ),
         .testTarget(
-            name: "DailyBriefingTests",
-            dependencies: ["DailyBriefing", "Models"]
+            name: "DeepCheckTests",
+            dependencies: ["DeepCheck", "Models"]
         ),
     ],
     swiftLanguageModes: [.v6]

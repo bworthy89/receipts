@@ -12,6 +12,7 @@
 // "today" — the screen does not pass UTC.
 
 import Foundation
+import Models
 
 public protocol DailyBriefingProvider: Sendable {
     /// Returns the cases for the given local day. Implementations must return

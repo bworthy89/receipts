@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import Models
 @testable import DailyBriefing
 
 @Suite("MockProvider")
