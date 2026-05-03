@@ -136,7 +136,12 @@ private struct BoardSection: View {
 
     var body: some View {
         GeometryReader { geo in
+            // Layout is sized to the actual source count rather than a
+            // hardcoded 5. The brief commits to 5 sources for v1 mock data,
+            // but any real provider returning a different count must not
+            // crash on `placements[i]`.
             let placements = SourceLayout.layout(
+                sourceCount: investigation.sources.count,
                 seed: SourceLayout.seed(forCaseID: investigation.kase.caseID)
             )
             let hub = CGPoint(x: geo.size.width / 2, y: SourceLayout.Metrics.headlineY)
@@ -349,15 +354,23 @@ private struct VerdictSlam: ViewModifier {
             .opacity(opacity)
             .onChange(of: staged, initial: true) { _, newValue in
                 guard newValue else { return }
+                if reduceMotion {
+                    // Reduce Motion: snap to settled state immediately, no
+                    // 4.5s opaque-to-zero hold. AGENTS.md mandates a
+                    // meaningful Reduce Motion fallback — the verdict
+                    // appearing in place is the meaningful equivalent of
+                    // the slam. The earlier pin-drops + string-draws have
+                    // their own per-effect reduced variants.
+                    scale = 1.0
+                    opacity = 1.0
+                    return
+                }
+                // Full-motion path: arm at scale 1.7 + opacity 0, sleep
+                // through the delay, then animate scale-down + fade-in.
                 scale = 1.7
                 opacity = 0
                 Task { @MainActor in
                     try? await Task.sleep(for: delay)
-                    if reduceMotion {
-                        scale = 1.0
-                        opacity = 1.0
-                        return
-                    }
                     withAnimation(Self.easeOutExpo) { scale = 1.0 }
                     withAnimation(.linear(duration: Self.slamSeconds * 0.22)) {
                         opacity = 1.0
