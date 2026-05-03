@@ -36,6 +36,20 @@ public struct MockProvider: DeepCheckProvider {
         )
     }
 
+    /// Number of canned investigations in which the given outlet appears as
+    /// a source. Used by `SourceDossierSheet` for the
+    /// "APPEARS IN N OF 10 ACTIVE CASES." caption.
+    public func outletAppearanceCount(_ outlet: String) -> Int {
+        Self.canned.values.reduce(into: 0) { count, inv in
+            if inv.sources.contains(where: { $0.outlet == outlet }) {
+                count += 1
+            }
+        }
+    }
+
+    /// Total number of canned cases — denominator for the appearance caption.
+    public var caseCount: Int { Self.canned.count }
+
     // MARK: - Canned investigations
 
     private static let canned: [String: Investigation] = {
