@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types", "./worker-configuration.d.ts"],
+    "outDir": "./dist",
+    "paths": {
+      "@crimeboard/shared": ["../../packages/shared/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

@@ -1,0 +1,37 @@
+name = "crimeboard-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# === Default (dev) environment ===
+
+account_id = "6c382be67dc62e7180d75b55c776e5fb"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "crimeboard-dev"
+database_id = "8bc81f73-0772-439d-ab2a-6525c6d6606a"
+migrations_dir = "../../migrations"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "bc6447d1923245d1a1ea46b21585f49d"
+
+[[r2_buckets]]
+binding = "ARCHIVE"
+bucket_name = "crimeboard-archive-dev"
+
+[[queues.producers]]
+binding = "INGEST_QUEUE"
+queue = "crimeboard-ingest-dev"
+
+[[queues.producers]]
+binding = "DEEPCHECK_QUEUE"
+queue = "crimeboard-deepcheck-dev"
+
+[ai]
+binding = "AI"
+
+[vars]
+APPLE_AUDIENCE = "com.bworthy.crimeboard"
+# SESSION_SECRET is set as a secret via `wrangler secret put SESSION_SECRET`.
