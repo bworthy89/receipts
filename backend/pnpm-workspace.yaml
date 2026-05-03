@@ -1,3 +1,10 @@
 packages:
   - "packages/*"
   - "workers/*"
+
+# pnpm 11+ disables install scripts by default and requires explicit per-package
+# approval. These are all from the Cloudflare Workers / Vitest toolchain.
+allowBuilds:
+  esbuild: true   # vitest's bundler — downloads platform binary
+  sharp: true     # transitive image-processing native module
+  workerd: true   # Cloudflare Workers runtime — used by wrangler dev + vitest-pool-workers
