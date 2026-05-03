@@ -17,6 +17,16 @@ public protocol DeepCheckProvider: Sendable {
     /// unknown to the provider (e.g. a stale briefing pin pointing at a
     /// retired case).
     func investigation(for kase: Case) async throws -> Investigation
+
+    /// Number of cases in which the given outlet appears as a source.
+    /// Drives the dossier's "APPEARS IN N OF M ACTIVE CASES." caption.
+    /// Synchronous because the count is locally derivable — the mock walks
+    /// its canned table; a real provider can cache it at briefing-load
+    /// time. If a future async-only backend appears, promote to async then.
+    func outletAppearanceCount(_ outlet: String) -> Int
+
+    /// Total number of active cases — denominator for the caption.
+    var caseCount: Int { get }
 }
 
 public enum DeepCheckProviderError: Error, Sendable {

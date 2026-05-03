@@ -153,12 +153,11 @@ public struct DeepCheckScreen: View {
     }
 
     private func openSource(_ source: Source, in investigation: Investigation) {
-        // Appearance count is mock-static — `MockProvider.outletAppearanceCount`
-        // walks the canned table. When a real provider lands, this hop
-        // becomes async and the open will need to wait on the count fetch
-        // before raising the sheet.
-        let count = MockProvider.outletAppearanceCount(source.outlet)
-        let total = MockProvider.caseCount
+        // Routes through the injected provider so a future swap (real
+        // backend, in-memory test fixture, etc.) flows through the same
+        // protocol as the investigation fetch.
+        let count = provider.outletAppearanceCount(source.outlet)
+        let total = provider.caseCount
         openDossier = OpenDossier(
             source: source,
             kase: investigation.kase,

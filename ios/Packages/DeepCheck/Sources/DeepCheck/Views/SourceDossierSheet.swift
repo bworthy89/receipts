@@ -158,7 +158,6 @@ public struct SourceDossierSheet: View {
         let restingOffset = -(coverHeight - Self.tabHeight)  // only the tab pokes in
         let activeRange = coverHeight - Self.tabHeight
         let currentOffset = restingOffset + (progress * activeRange)
-        let isFullyOpen = progress < 0.001
 
         return ZStack(alignment: .bottom) {
             // The manila plate. Sepia fill plus a soft shadow at its
@@ -192,7 +191,11 @@ public struct SourceDossierSheet: View {
         // the working dismiss path for Reduce Motion users.
         .gesture(coverDragGesture, including: reduceMotion ? .none : .all)
         .accessibilityHint(Text("Drag down to close"))
-        .allowsHitTesting(isFullyOpen || progress > 0)
+        // Disable hit-testing while the close animation is committing so
+        // a fresh tap can't restart the drag mid-dismiss. The gesture's
+        // own `isClosing` guard catches re-entry too; this is the
+        // belt-and-suspenders pair.
+        .allowsHitTesting(!isClosing)
     }
 
     private var tabContent: some View {
@@ -223,7 +226,10 @@ public struct SourceDossierSheet: View {
                         progress = 1.0
                     }
                     Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(330))
+                        // 60ms slack past the 320ms close animation so the
+                        // dismiss never fires before the cover is fully on
+                        // top of the body, even on a busy main thread.
+                        try? await Task.sleep(for: .milliseconds(380))
                         onDismiss()
                     }
                 } else {
