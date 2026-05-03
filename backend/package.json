@@ -1,0 +1,21 @@
+{
+  "name": "crimeboard-backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "test": "pnpm -r run test",
+    "typecheck": "pnpm -r run typecheck",
+    "deploy:dev": "pnpm --filter @crimeboard/api run deploy:dev",
+    "deploy:staging": "pnpm --filter @crimeboard/api run deploy:staging",
+    "deploy:prod": "pnpm --filter @crimeboard/api run deploy:prod"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "wrangler": "^4.0.0"
+  }
+}
