@@ -1,0 +1,108 @@
+# THE CRIME BOARD — Backend
+
+Cloudflare Workers backend monorepo. See `/PRODUCT.md` and `/DESIGN.md` at project root for product/visual context, and `/docs/superpowers/specs/2026-05-02-news-app-design.md` for the technical spec.
+
+## Layout
+
+```
+backend/
+├── migrations/           D1 schema migrations
+├── packages/
+│   └── shared/           Shared types + auth helpers (@crimeboard/shared)
+└── workers/
+    └── api/              The user-facing REST API (@crimeboard/api)
+```
+
+Future workers (`ingest`, `cluster-builder`, `deep-check`, `push`, `factcheck-sync`) land in `workers/` as separate packages.
+
+## Prerequisites
+
+- Node 20+
+- pnpm 9+
+- A Cloudflare account, with `wrangler login` already run
+
+## Daily development
+
+```bash
+cd backend
+pnpm install                            # one-time, after pulling changes
+pnpm --filter @crimeboard/api run dev   # local dev server on :8787
+pnpm test                               # all packages, all workers
+pnpm typecheck                          # type-check everything
+```
+
+## Deploy
+
+```bash
+pnpm run deploy:dev        # → crimeboard-api.<subdomain>.workers.dev
+pnpm run deploy:staging    # → crimeboard-api-staging.<subdomain>.workers.dev
+pnpm run deploy:prod       # → crimeboard-api-prod.<subdomain>.workers.dev
+```
+
+Production deploy is intentionally manual — there is no CI/CD configured in this foundation plan. (Add a separate ops plan when ready.)
+
+## D1 migrations
+
+Add a new migration file under `migrations/` (number sequentially):
+
+```bash
+# Example
+echo "ALTER TABLE outlets ADD COLUMN nickname TEXT;" > migrations/0002_outlet_nickname.sql
+```
+
+Then apply:
+
+```bash
+cd workers/api
+pnpm exec wrangler d1 migrations apply crimeboard-dev --local                       # local first
+pnpm exec wrangler d1 migrations apply crimeboard-dev --remote                      # then dev
+pnpm exec wrangler d1 migrations apply crimeboard-staging --env staging --remote    # then staging
+pnpm exec wrangler d1 migrations apply crimeboard-prod --env production --remote    # then prod
+```
+
+## Secrets
+
+Set per-environment secrets via `wrangler secret put`:
+
+```bash
+cd workers/api
+openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET                  # dev
+openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET --env staging    # staging
+openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET --env production # prod
+```
+
+Use a different secret per environment. Never commit secrets.
+
+## Environments
+
+| Env | D1 | KV | R2 | Queues | Worker URL |
+|---|---|---|---|---|---|
+| dev | `crimeboard-dev` | `crimeboard-cache-dev` | `crimeboard-archive-dev` | `crimeboard-{ingest,deepcheck}-dev` | `https://crimeboard-api.bworthy89.workers.dev` |
+| staging | `crimeboard-staging` | `crimeboard-cache-staging` | `crimeboard-archive-staging` | `crimeboard-{ingest,deepcheck}-staging` | `https://crimeboard-api-staging.bworthy89.workers.dev` |
+| production | `crimeboard-prod` | `crimeboard-cache-prod` | `crimeboard-archive-prod` | `crimeboard-{ingest,deepcheck}-prod` | (not yet deployed) |
+
+## Endpoints (current)
+
+- `GET /health` — public, returns `{ ok, service }`
+- `POST /auth/apple` — public, body `{ identityToken }` → `{ sessionToken, user }`
+- `GET /me` — auth-gated, returns user record
+- `PATCH /me` — auth-gated, body partial-update of user prefs
+
+(More endpoints are added in subsequent plans.)
+
+## Testing
+
+```bash
+cd backend
+pnpm test
+```
+
+Tests run inside a real Workers runtime via `@cloudflare/vitest-pool-workers`. D1 migrations are auto-applied to the test runtime by `workers/api/test/apply-migrations.ts` (loaded as a vitest setup file).
+
+The `pretest` hook on `@crimeboard/api` also re-applies D1 migrations to the local-development D1 (`.wrangler/state/`) before each run, so `wrangler dev` and the test runtime stay in sync.
+
+## Known gotchas
+
+- **Project path must not contain spaces.** `@cloudflare/vitest-pool-workers` (and underlying workerd) can't resolve module paths with spaces. Project root is `/Users/kari/Documents/news-app/` (hyphen).
+- **pnpm 11 install-script approval.** `pnpm-workspace.yaml` declares `allowBuilds: { esbuild: true, sharp: true, workerd: true }`. Without these, install scripts are skipped and the toolchain breaks.
+- **Workers AI binding is per-worker.** Don't add `[ai] binding = "AI"` to `wrangler.toml` of a worker that doesn't actually invoke AI — vitest-pool-workers can't emulate the wrapped binding and tests will fail to start. The shared `Env` type still declares `AI`, but only workers that use it should bind it.
