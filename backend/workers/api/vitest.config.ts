@@ -1,18 +1,19 @@
-import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
+import { defineWorkersConfig, readD1Migrations } from "@cloudflare/vitest-pool-workers/config";
+import path from "node:path";
+
+// Read all migrations from the monorepo's migrations directory at config-load time.
+// They get passed to miniflare as a binding so the test setup file can apply them
+// to the in-memory D1 before each test file runs.
+const migrationsDir = path.resolve(__dirname, "../../migrations");
+const migrations = await readD1Migrations(migrationsDir);
 
 export default defineWorkersConfig({
   test: {
+    setupFiles: ["./test/apply-migrations.ts"],
     poolOptions: {
       workers: {
-        wrangler: {
-          configPath: "./wrangler.toml",
-          // Use test environment to exclude AI binding (not supported in miniflare)
-          env: "test",
-        },
+        wrangler: { configPath: "./wrangler.toml" },
         miniflare: {
-          // Each test gets a fresh isolated D1; migrations are applied via the
-          // `--local` D1 we set up in Task 11. For tests that require a clean
-          // schema, we'll re-apply migrations in beforeAll.
           d1Databases: ["DB"],
           kvNamespaces: ["CACHE"],
           r2Buckets: ["ARCHIVE"],
@@ -20,6 +21,7 @@ export default defineWorkersConfig({
           bindings: {
             APPLE_AUDIENCE: "com.bworthy.crimeboard.test",
             SESSION_SECRET: "test-session-secret-do-not-use-in-prod",
+            TEST_MIGRATIONS: migrations,
           },
         },
       },

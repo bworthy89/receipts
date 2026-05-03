@@ -17,11 +17,7 @@ beforeAll(async () => {
     alg: "RS256",
     use: "sig",
   };
-
-  // Apply the DB schema so the users table exists in miniflare's in-memory D1.
-  await env.DB.prepare(
-    "CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, apple_sub TEXT UNIQUE, email TEXT, created_at INTEGER NOT NULL, pro_until INTEGER, feed_mode TEXT NOT NULL DEFAULT 'strict' CHECK (feed_mode IN ('strict', 'balanced')), selected_topics TEXT NOT NULL DEFAULT '[]', selected_outlets TEXT NOT NULL DEFAULT '[]', excluded_outlets TEXT NOT NULL DEFAULT '[]', notification_prefs TEXT NOT NULL DEFAULT '{}') STRICT"
-  ).run();
+  // D1 schema is applied by test/apply-migrations.ts (loaded as a setup file).
 });
 
 beforeEach(async () => {

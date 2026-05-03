@@ -1,8 +1,7 @@
 declare module "cloudflare:test" {
   // Make ProvidedEnv match our shared Env so tests get full type-safety on env bindings.
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  interface ProvidedEnv extends import("@crimeboard/shared").Env {}
-
-  // SELF is provided by @cloudflare/vitest-pool-workers; this re-exports it
-  export declare const SELF: Fetcher;
+  interface ProvidedEnv extends import("@crimeboard/shared").Env {
+    /** D1 migrations injected via vitest.config.ts; applied by test/apply-migrations.ts. */
+    TEST_MIGRATIONS: import("@cloudflare/vitest-pool-workers/config").D1Migration[];
+  }
 }
