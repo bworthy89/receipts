@@ -1,9 +1,14 @@
 import SwiftUI
 import APIClient
 import Models
+import DesignSystem
 
 struct ContentView: View {
     @State private var status: ProbeStatus = .idle
+
+    #if DEBUG
+    @State private var showingCatalog = false
+    #endif
 
     enum ProbeStatus: Sendable, Equatable {
         case idle
@@ -44,11 +49,23 @@ struct ContentView: View {
                 Task { await runProbe() }
             }
             .buttonStyle(.borderedProminent)
+
+            #if DEBUG
+            Button("View DesignSystem Catalog") {
+                showingCatalog = true
+            }
+            .buttonStyle(.bordered)
+            #endif
         }
         .padding()
         .task {
             await runProbe()
         }
+        #if DEBUG
+        .sheet(isPresented: $showingCatalog) {
+            DesignSystemCatalog()
+        }
+        #endif
     }
 
     private func runProbe() async {
