@@ -27,6 +27,10 @@ public struct SourceDossierSheet: View {
     let totalCases: Int
     let onDismiss: @MainActor () -> Void
 
+    @State private var progress: CGFloat = 0
+    @State private var isClosing: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     public init(
         source: Source,
         kase: Case,
@@ -46,9 +50,8 @@ public struct SourceDossierSheet: View {
             // The substrate: warm sepia/cork peeking around the folder edges.
             Color.cork.ignoresSafeArea()
 
-            FolderFoldDismiss(onDismiss: onDismiss) {
-                folder
-            }
+            folder
+                .modifier(FolderFoldRender(progress: progress, reduceMotion: reduceMotion))
         }
         .accessibilityLabel(Text(accessibilityDescription))
     }
@@ -79,7 +82,39 @@ public struct SourceDossierSheet: View {
             ManilaTabBackground()
                 .fill(Color.sepia)
         )
+        // Drag gesture lives ONLY on the tab. The body's ScrollView gets
+        // its full gesture surface back so users can scroll the excerpt
+        // without folding the sheet by accident.
+        .contentShape(Rectangle())
+        .gesture(tabDragGesture)
         .accessibilityHint(Text("Drag down to close"))
+    }
+
+    private var tabDragGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                guard !reduceMotion else { return }
+                guard !isClosing else { return }
+                progress = FolderFold.progress(for: value.translation.height)
+            }
+            .onEnded { _ in
+                guard !reduceMotion else { return }
+                guard !isClosing else { return }
+                if FolderFold.shouldDismiss(at: progress) {
+                    withAnimation(.easeIn(duration: 0.28)) {
+                        progress = 1.0
+                        isClosing = true
+                    }
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(290))
+                        onDismiss()
+                    }
+                } else {
+                    withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) {
+                        progress = 0
+                    }
+                }
+            }
     }
 
     private var folderBody: some View {
