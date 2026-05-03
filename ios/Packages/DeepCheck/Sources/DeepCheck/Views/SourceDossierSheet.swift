@@ -71,6 +71,10 @@ public struct SourceDossierSheet: View {
             }
         }
         .ignoresSafeArea(edges: .bottom)
+        // Suppress the iOS-default sheet grab pill so it doesn't draw on
+        // top of the manila tab. Per the brief §6 anti-goal: "the manila
+        // folder IS the chrome."
+        .presentationDragIndicator(.hidden)
         .accessibilityLabel(Text(accessibilityDescription))
     }
 
@@ -182,7 +186,11 @@ public struct SourceDossierSheet: View {
         // Tab-shape clip on the bottom edge so the cover reads as a real
         // file-folder tab and not a plain rectangle.
         .clipShape(CoverTabShape(tabHeight: Self.tabHeight))
-        .gesture(coverDragGesture)
+        // GestureMask `.none` disables the gesture under Reduce Motion so
+        // the system's native pan-to-dismiss isn't shadowed by a no-op
+        // gesture that still captures touches. The native drag remains
+        // the working dismiss path for Reduce Motion users.
+        .gesture(coverDragGesture, including: reduceMotion ? .none : .all)
         .accessibilityHint(Text("Drag down to close"))
         .allowsHitTesting(isFullyOpen || progress > 0)
     }
