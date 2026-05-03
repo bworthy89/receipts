@@ -36,7 +36,7 @@ queue = "crimeboard-deepcheck-dev"
 # wrangler.toml without needing external AI worker emulation in miniflare.
 
 [vars]
-APPLE_AUDIENCE = "com.bworthy.crimeboard"
+APPLE_AUDIENCE = "com.bworthy.receipts"
 # SESSION_SECRET is set as a secret via `wrangler secret put SESSION_SECRET`.
 
 # === Staging environment ===
@@ -70,7 +70,7 @@ queue = "crimeboard-deepcheck-staging"
 # AI binding intentionally omitted (see note in default env above).
 
 [env.staging.vars]
-APPLE_AUDIENCE = "com.bworthy.crimeboard"
+APPLE_AUDIENCE = "com.bworthy.receipts"
 
 # === Production environment ===
 # Deploy with: pnpm run deploy:prod
@@ -103,4 +103,4 @@ queue = "crimeboard-deepcheck-prod"
 # AI binding intentionally omitted (see note in default env above).
 
 [env.production.vars]
-APPLE_AUDIENCE = "com.bworthy.crimeboard"
+APPLE_AUDIENCE = "com.bworthy.receipts"

@@ -45,11 +45,11 @@ describe("POST /auth/apple", () => {
     const res = await SELF.fetch("http://test/auth/apple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identityToken }),
+      body: JSON.stringify({ identity_token: identityToken }),
     });
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { sessionToken: string; user: { id: string; email: string | null } };
-    expect(body.sessionToken).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+    const body = (await res.json()) as { session_token: string; user: { id: string; email: string | null } };
+    expect(body.session_token).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
     expect(body.user.email).toBe("user@example.com");
 
     const row = await env.DB.prepare("SELECT id, apple_sub, email FROM users WHERE apple_sub = ?")
@@ -64,14 +64,14 @@ describe("POST /auth/apple", () => {
     await SELF.fetch("http://test/auth/apple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identityToken: t1 }),
+      body: JSON.stringify({ identity_token: t1 }),
     });
     // Apple omits email on subsequent sign-ins — verify we don't overwrite it with null.
     const t2 = await makeAppleToken("001234.abcdef.5678", null);
     const res = await SELF.fetch("http://test/auth/apple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identityToken: t2 }),
+      body: JSON.stringify({ identity_token: t2 }),
     });
     expect(res.status).toBe(200);
 
@@ -82,7 +82,7 @@ describe("POST /auth/apple", () => {
     expect(rows.results[0]!.email).toBe("user@example.com");
   });
 
-  it("returns 400 when body is missing identityToken", async () => {
+  it("returns 400 when body is missing identity_token", async () => {
     const res = await SELF.fetch("http://test/auth/apple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -91,11 +91,11 @@ describe("POST /auth/apple", () => {
     expect(res.status).toBe(400);
   });
 
-  it("returns 401 when identityToken is invalid", async () => {
+  it("returns 401 when identity_token is invalid", async () => {
     const res = await SELF.fetch("http://test/auth/apple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identityToken: "not.a.real.token" }),
+      body: JSON.stringify({ identity_token: "not.a.real.token" }),
     });
     expect(res.status).toBe(401);
   });

@@ -1,0 +1,46 @@
+name: Receipts
+options:
+  bundleIdPrefix: com.bworthy
+  deploymentTarget:
+    iOS: "26.0"
+  developmentLanguage: en
+  groupSortPosition: top
+  generateEmptyDirectories: true
+settings:
+  base:
+    SWIFT_VERSION: 6.2
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_UPCOMING_FEATURE_INTERNAL_IMPORTS_BY_DEFAULT: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+packages:
+  Models:
+    path: Packages/Models
+  APIClient:
+    path: Packages/APIClient
+  PersistenceKit:
+    path: Packages/PersistenceKit
+  OnDeviceAI:
+    path: Packages/OnDeviceAI
+
+targets:
+  Receipts:
+    type: application
+    platform: iOS
+    sources:
+      - path: Receipts
+        excludes:
+          - "Info.plist"
+    dependencies:
+      - package: Models
+      - package: APIClient
+      - package: PersistenceKit
+      - package: OnDeviceAI
+    settings:
+      base:
+        PRODUCT_NAME: Receipts
+        PRODUCT_BUNDLE_IDENTIFIER: com.bworthy.receipts
+        INFOPLIST_FILE: Receipts/Info.plist
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        CODE_SIGN_STYLE: Automatic

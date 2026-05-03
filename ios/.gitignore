@@ -1,0 +1,28 @@
+# XcodeGen output (regenerated from project.yml — never commit)
+*.xcodeproj/
+
+# Xcode user state
+*.xcuserstate
+xcuserdata/
+*.xcuserstate.lock
+
+# Xcode build artifacts
+DerivedData/
+build/
+.build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager build artifacts (per-package)
+**/.build/
+**/.swiftpm/
+
+# CocoaPods (if ever used)
+Pods/
+
+# fastlane (if ever used)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
