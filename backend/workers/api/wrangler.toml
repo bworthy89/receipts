@@ -29,8 +29,11 @@ queue = "crimeboard-ingest-dev"
 binding = "DEEPCHECK_QUEUE"
 queue = "crimeboard-deepcheck-dev"
 
-[ai]
-binding = "AI"
+# Workers AI binding intentionally omitted from this worker — the api-worker doesn't
+# use AI directly. AI inference happens in the cluster-builder and deep-check workers
+# (added in later plans), which will declare `[ai] binding = "AI"` in their own
+# wrangler.toml. Excluding AI here lets vitest-pool-workers run tests against this
+# wrangler.toml without needing external AI worker emulation in miniflare.
 
 [vars]
 APPLE_AUDIENCE = "com.bworthy.crimeboard"

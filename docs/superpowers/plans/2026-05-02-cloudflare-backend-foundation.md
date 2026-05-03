@@ -40,7 +40,7 @@ Before starting Task 1, the engineer must have:
 ## File structure produced by this plan
 
 ```
-/Users/kari/Documents/news app/
+/Users/kari/Documents/news-app/
 ├── .gitignore                      [created Task 1]
 ├── README.md                       [created Task 1]
 └── backend/
@@ -94,8 +94,8 @@ Before starting Task 1, the engineer must have:
 ### Task 1: Initialize git repo at project root
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/.gitignore`
-- Create: `/Users/kari/Documents/news app/README.md`
+- Create: `/Users/kari/Documents/news-app/.gitignore`
+- Create: `/Users/kari/Documents/news-app/README.md`
 
 The project root has many files (PRODUCT.md, DESIGN.md, AGENTS.md, etc.) but no git repo yet. Initialize git and commit the existing canonical docs as the first commit so all future work is tracked.
 
@@ -103,9 +103,9 @@ The project root has many files (PRODUCT.md, DESIGN.md, AGENTS.md, etc.) but no 
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && pwd && [ -d .git ] && echo "ALREADY A REPO — STOP" || echo "OK to init"
+cd "/Users/kari/Documents/news-app" && pwd && [ -d .git ] && echo "ALREADY A REPO — STOP" || echo "OK to init"
 ```
-Expected: `/Users/kari/Documents/news app` followed by `OK to init`. If you see `ALREADY A REPO — STOP`, do not proceed — investigate why.
+Expected: `/Users/kari/Documents/news-app` followed by `OK to init`. If you see `ALREADY A REPO — STOP`, do not proceed — investigate why.
 
 - [ ] **Step 2: Initialize git**
 
@@ -113,11 +113,11 @@ Run:
 ```bash
 git init -b main
 ```
-Expected: `Initialized empty Git repository in /Users/kari/Documents/news app/.git/`
+Expected: `Initialized empty Git repository in /Users/kari/Documents/news-app/.git/`
 
 - [ ] **Step 3: Write `.gitignore`**
 
-Create `/Users/kari/Documents/news app/.gitignore`:
+Create `/Users/kari/Documents/news-app/.gitignore`:
 
 ```gitignore
 # macOS
@@ -152,7 +152,7 @@ coverage/
 
 - [ ] **Step 4: Write top-level README**
 
-Create `/Users/kari/Documents/news app/README.md`:
+Create `/Users/kari/Documents/news-app/README.md`:
 
 ```markdown
 # THE CRIME BOARD
@@ -190,20 +190,20 @@ If you see `.agents/` or `.claude/` flagged as untracked when running `git statu
 ### Task 2: Create backend monorepo structure
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/package.json`
-- Create: `/Users/kari/Documents/news app/backend/pnpm-workspace.yaml`
-- Create: `/Users/kari/Documents/news app/backend/.gitignore`
+- Create: `/Users/kari/Documents/news-app/backend/package.json`
+- Create: `/Users/kari/Documents/news-app/backend/pnpm-workspace.yaml`
+- Create: `/Users/kari/Documents/news-app/backend/.gitignore`
 
 - [ ] **Step 1: Create directory structure**
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && mkdir -p backend/migrations backend/packages/shared/src backend/workers/api/src/routes backend/workers/api/src/middleware backend/workers/api/test
+cd "/Users/kari/Documents/news-app" && mkdir -p backend/migrations backend/packages/shared/src backend/workers/api/src/routes backend/workers/api/src/middleware backend/workers/api/test
 ```
 
 - [ ] **Step 2: Write root `backend/package.json`**
 
-Create `/Users/kari/Documents/news app/backend/package.json`:
+Create `/Users/kari/Documents/news-app/backend/package.json`:
 
 ```json
 {
@@ -231,7 +231,7 @@ Create `/Users/kari/Documents/news app/backend/package.json`:
 
 - [ ] **Step 3: Write `pnpm-workspace.yaml`**
 
-Create `/Users/kari/Documents/news app/backend/pnpm-workspace.yaml`:
+Create `/Users/kari/Documents/news-app/backend/pnpm-workspace.yaml`:
 
 ```yaml
 packages:
@@ -241,7 +241,7 @@ packages:
 
 - [ ] **Step 4: Write `backend/.gitignore`**
 
-Create `/Users/kari/Documents/news app/backend/.gitignore`:
+Create `/Users/kari/Documents/news-app/backend/.gitignore`:
 
 ```gitignore
 node_modules/
@@ -256,7 +256,7 @@ coverage/
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm install
+cd "/Users/kari/Documents/news-app/backend" && pnpm install
 ```
 
 Expected: pnpm creates `node_modules/`, installs `typescript` and `wrangler` at the root. No errors.
@@ -265,7 +265,7 @@ Expected: pnpm creates `node_modules/`, installs `typescript` and `wrangler` at 
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler --version
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler --version
 ```
 
 Expected: `4.x.y` (any 4.x version is fine).
@@ -274,7 +274,7 @@ Expected: `4.x.y` (any 4.x version is fine).
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/package.json backend/pnpm-workspace.yaml backend/.gitignore && git commit -m "chore(backend): scaffold pnpm monorepo structure"
+cd "/Users/kari/Documents/news-app" && git add backend/package.json backend/pnpm-workspace.yaml backend/.gitignore && git commit -m "chore(backend): scaffold pnpm monorepo structure"
 ```
 
 Note: do NOT commit `backend/node_modules/` or `backend/pnpm-lock.yaml` yet — the lockfile is created on install but should be added in a later step once we have real workspace packages installed (next task adds it intentionally).
@@ -282,7 +282,7 @@ Note: do NOT commit `backend/node_modules/` or `backend/pnpm-lock.yaml` yet — 
 Actually, do commit the lockfile — pnpm needs it for reproducible installs across machines. Run:
 
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/pnpm-lock.yaml && git commit --amend --no-edit
+cd "/Users/kari/Documents/news-app" && git add backend/pnpm-lock.yaml && git commit --amend --no-edit
 ```
 
 Expected: lockfile is now part of the scaffold commit.
@@ -292,13 +292,13 @@ Expected: lockfile is now part of the scaffold commit.
 ### Task 3: Configure shared TypeScript settings
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/tsconfig.base.json`
+- Create: `/Users/kari/Documents/news-app/backend/tsconfig.base.json`
 
 A single base TS config that all packages and workers extend. Strict mode, ES2022, NodeNext module resolution (works for Cloudflare Workers, which runs on V8 with ESM).
 
 - [ ] **Step 1: Write `tsconfig.base.json`**
 
-Create `/Users/kari/Documents/news app/backend/tsconfig.base.json`:
+Create `/Users/kari/Documents/news-app/backend/tsconfig.base.json`:
 
 ```json
 {
@@ -317,16 +317,19 @@ Create `/Users/kari/Documents/news app/backend/tsconfig.base.json`:
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
     "noEmit": true
   }
 }
 ```
 
+(`allowImportingTsExtensions: true` is required because later code imports siblings with explicit `.ts` extensions, which `verbatimModuleSyntax: true` requires you to allow. `noEmit: true` is the precondition.)
+
 - [ ] **Step 2: Commit**
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/tsconfig.base.json && git commit -m "chore(backend): add base tsconfig with strict settings"
+cd "/Users/kari/Documents/news-app" && git add backend/tsconfig.base.json && git commit -m "chore(backend): add base tsconfig with strict settings"
 ```
 
 ---
@@ -341,7 +344,7 @@ cd "/Users/kari/Documents/news app" && git add backend/tsconfig.base.json && git
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler login
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler login
 ```
 
 Expected: a browser window opens prompting you to authorize Wrangler. Click "Allow." Terminal prints `Successfully logged in.`
@@ -350,7 +353,7 @@ Expected: a browser window opens prompting you to authorize Wrangler. Click "All
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler whoami
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler whoami
 ```
 
 Expected: prints your Cloudflare account email and an account ID. **Save the account ID** — you'll paste it into `wrangler.toml` later. Example output:
@@ -376,7 +379,7 @@ If multiple accounts are listed, decide which one to use for THE CRIME BOARD and
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler d1 create crimeboard-dev
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler d1 create crimeboard-dev
 ```
 
 Expected output ends with a `[[d1_databases]]` TOML block. Copy the `database_id` value somewhere — you need it for `wrangler.toml`. Example:
@@ -394,7 +397,7 @@ database_id = "11111111-2222-3333-4444-555555555555"
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler kv namespace create crimeboard-cache-dev
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler kv namespace create crimeboard-cache-dev
 ```
 
 Expected output ends with a `[[kv_namespaces]]` TOML block. Save the `id` value.
@@ -403,7 +406,7 @@ Expected output ends with a `[[kv_namespaces]]` TOML block. Save the `id` value.
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler r2 bucket create crimeboard-archive-dev
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler r2 bucket create crimeboard-archive-dev
 ```
 
 Expected: `Created bucket crimeboard-archive-dev`. (R2 buckets are referenced by name, not ID.)
@@ -414,7 +417,7 @@ Two queues — one for ingest fan-out, one for deep-check (used in later plans, 
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler queues create crimeboard-ingest-dev && pnpm exec wrangler queues create crimeboard-deepcheck-dev
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler queues create crimeboard-ingest-dev && pnpm exec wrangler queues create crimeboard-deepcheck-dev
 ```
 
 Expected: `Created queue crimeboard-ingest-dev.` then `Created queue crimeboard-deepcheck-dev.`
@@ -440,7 +443,7 @@ You will not commit these to git anywhere — they're injected via `wrangler.tom
 ### Task 6: Write the initial schema migration
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/migrations/0001_initial_schema.sql`
+- Create: `/Users/kari/Documents/news-app/backend/migrations/0001_initial_schema.sql`
 
 Six tables per the spec data model. SQLite STRICT tables for type enforcement. Foreign keys enforced when `PRAGMA foreign_keys = ON` (Wrangler enables this for D1).
 
@@ -448,7 +451,7 @@ Table order matters for FK constraints: `clusters` is created before `articles` 
 
 - [ ] **Step 1: Write the schema**
 
-Create `/Users/kari/Documents/news app/backend/migrations/0001_initial_schema.sql`:
+Create `/Users/kari/Documents/news-app/backend/migrations/0001_initial_schema.sql`:
 
 ```sql
 -- 0001_initial_schema.sql
@@ -547,7 +550,7 @@ Wrangler migrations require a `wrangler.toml` to know which D1 to target. We don
 For now, just verify the SQL parses by running it through `sqlite3` if available:
 
 ```bash
-cd "/Users/kari/Documents/news app/backend" && command -v sqlite3 >/dev/null && sqlite3 :memory: < migrations/0001_initial_schema.sql && echo "SQL parses cleanly" || echo "SKIP: sqlite3 not installed (install with: brew install sqlite — optional)"
+cd "/Users/kari/Documents/news-app/backend" && command -v sqlite3 >/dev/null && sqlite3 :memory: < migrations/0001_initial_schema.sql && echo "SQL parses cleanly" || echo "SKIP: sqlite3 not installed (install with: brew install sqlite — optional)"
 ```
 
 Expected: either `SQL parses cleanly` or `SKIP: ...`. If the SQL has errors, sqlite3 will print them; fix and re-run.
@@ -556,7 +559,7 @@ Expected: either `SQL parses cleanly` or `SKIP: ...`. If the SQL has errors, sql
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/migrations/0001_initial_schema.sql && git commit -m "feat(backend): add initial D1 schema (outlets, clusters, articles, fact_checks, users, push_subscriptions)"
+cd "/Users/kari/Documents/news-app" && git add backend/migrations/0001_initial_schema.sql && git commit -m "feat(backend): add initial D1 schema (outlets, clusters, articles, fact_checks, users, push_subscriptions)"
 ```
 
 ---
@@ -566,16 +569,16 @@ cd "/Users/kari/Documents/news app" && git add backend/migrations/0001_initial_s
 ### Task 7: Bootstrap shared package
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/packages/shared/package.json`
-- Create: `/Users/kari/Documents/news app/backend/packages/shared/tsconfig.json`
-- Create: `/Users/kari/Documents/news app/backend/packages/shared/src/env.ts`
-- Create: `/Users/kari/Documents/news app/backend/packages/shared/src/index.ts`
+- Create: `/Users/kari/Documents/news-app/backend/packages/shared/package.json`
+- Create: `/Users/kari/Documents/news-app/backend/packages/shared/tsconfig.json`
+- Create: `/Users/kari/Documents/news-app/backend/packages/shared/src/env.ts`
+- Create: `/Users/kari/Documents/news-app/backend/packages/shared/src/index.ts`
 
 The `shared` package holds types and pure utilities used by every worker. Starts with the `Env` binding type and a barrel `index.ts`.
 
 - [ ] **Step 1: Write `packages/shared/package.json`**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/package.json`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/package.json`:
 
 ```json
 {
@@ -605,7 +608,7 @@ Create `/Users/kari/Documents/news app/backend/packages/shared/package.json`:
 
 - [ ] **Step 2: Write `packages/shared/tsconfig.json`**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/tsconfig.json`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/tsconfig.json`:
 
 ```json
 {
@@ -621,7 +624,7 @@ Create `/Users/kari/Documents/news app/backend/packages/shared/tsconfig.json`:
 
 - [ ] **Step 3: Write `packages/shared/src/env.ts`**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/env.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/env.ts`:
 
 ```typescript
 // Cloudflare Worker bindings shared across all workers in the monorepo.
@@ -655,7 +658,7 @@ export interface Env {
 
 - [ ] **Step 4: Write `packages/shared/src/index.ts`**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/index.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/index.ts`:
 
 ```typescript
 export type { Env } from "./env.ts";
@@ -665,7 +668,7 @@ export type { Env } from "./env.ts";
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm install
+cd "/Users/kari/Documents/news-app/backend" && pnpm install
 ```
 
 Expected: pnpm installs `jose`, `hono`, `@cloudflare/workers-types`, `vitest` into the workspace. No errors.
@@ -674,7 +677,7 @@ Expected: pnpm installs `jose`, `hono`, `@cloudflare/workers-types`, `vitest` in
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run typecheck
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run typecheck
 ```
 
 Expected: no output (success). If you see a missing-types error, double-check `tsconfig.json` extends the right base path.
@@ -683,7 +686,7 @@ Expected: no output (success). If you see a missing-types error, double-check `t
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/packages/shared/ backend/pnpm-lock.yaml && git commit -m "feat(backend): scaffold @crimeboard/shared package with Env binding types"
+cd "/Users/kari/Documents/news-app" && git add backend/packages/shared/ backend/pnpm-lock.yaml && git commit -m "feat(backend): scaffold @crimeboard/shared package with Env binding types"
 ```
 
 ---
@@ -691,14 +694,14 @@ cd "/Users/kari/Documents/news app" && git add backend/packages/shared/ backend/
 ### Task 8: Implement HMAC session token mint/verify (TDD)
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/packages/shared/src/session.ts`
-- Test: `/Users/kari/Documents/news app/backend/packages/shared/src/session.test.ts`
+- Create: `/Users/kari/Documents/news-app/backend/packages/shared/src/session.ts`
+- Test: `/Users/kari/Documents/news-app/backend/packages/shared/src/session.test.ts`
 
 After we verify a user's Apple identity token, we mint our own short-lived session token (HS256 JWT, 30-day expiry) and the iOS app sends it on subsequent requests as `Authorization: Bearer <token>`.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/session.test.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/session.test.ts`:
 
 ```typescript
 import { describe, it, expect } from "vitest";
@@ -745,14 +748,14 @@ describe("session token", () => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run test
 ```
 
 Expected: **FAIL** — `Cannot find module './session.ts'` or `mintSessionToken is not defined`. This is the expected red state for TDD.
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/session.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/session.ts`:
 
 ```typescript
 import { sign, verify } from "hono/jwt";
@@ -802,14 +805,14 @@ export async function verifySessionToken(params: VerifyParams): Promise<SessionC
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run test
 ```
 
 Expected: **PASS** — all four tests green.
 
 - [ ] **Step 5: Add a re-export to the barrel**
 
-Edit `/Users/kari/Documents/news app/backend/packages/shared/src/index.ts` to add:
+Edit `/Users/kari/Documents/news-app/backend/packages/shared/src/index.ts` to add:
 
 ```typescript
 export type { Env } from "./env.ts";
@@ -821,7 +824,7 @@ export type { SessionClaims, MintParams, VerifyParams } from "./session.ts";
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run typecheck
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run typecheck
 ```
 
 Expected: no output (success).
@@ -830,7 +833,7 @@ Expected: no output (success).
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/packages/shared/src/session.ts backend/packages/shared/src/session.test.ts backend/packages/shared/src/index.ts && git commit -m "feat(shared): HMAC session token mint/verify with hono/jwt"
+cd "/Users/kari/Documents/news-app" && git add backend/packages/shared/src/session.ts backend/packages/shared/src/session.test.ts backend/packages/shared/src/index.ts && git commit -m "feat(shared): HMAC session token mint/verify with hono/jwt"
 ```
 
 ---
@@ -838,14 +841,14 @@ cd "/Users/kari/Documents/news app" && git add backend/packages/shared/src/sessi
 ### Task 9: Implement Apple JWKS fetch + cache (TDD)
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/packages/shared/src/jwks.ts`
-- Test: `/Users/kari/Documents/news app/backend/packages/shared/src/jwks.test.ts`
+- Create: `/Users/kari/Documents/news-app/backend/packages/shared/src/jwks.ts`
+- Test: `/Users/kari/Documents/news-app/backend/packages/shared/src/jwks.test.ts`
 
 Apple publishes its JWKS (public keys for verifying identity tokens) at `https://appleid.apple.com/auth/keys`. The keys rotate periodically; we cache them in KV for 1 hour to avoid hitting Apple on every auth request.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/jwks.test.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/jwks.test.ts`:
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -925,14 +928,14 @@ describe("fetchAppleJwks", () => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run test
 ```
 
 Expected: **FAIL** — module not found / `fetchAppleJwks` not defined.
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/jwks.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/jwks.ts`:
 
 ```typescript
 const APPLE_JWKS_URL = "https://appleid.apple.com/auth/keys";
@@ -977,14 +980,14 @@ export async function fetchAppleJwks(kv: KVNamespace): Promise<AppleJwks> {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run test
 ```
 
 Expected: **PASS** — all three jwks tests + four session tests = 7 green.
 
 - [ ] **Step 5: Re-export**
 
-Edit `/Users/kari/Documents/news app/backend/packages/shared/src/index.ts` to add:
+Edit `/Users/kari/Documents/news-app/backend/packages/shared/src/index.ts` to add:
 
 ```typescript
 export { fetchAppleJwks } from "./jwks.ts";
@@ -1005,7 +1008,7 @@ export type { AppleJwks } from "./jwks.ts";
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/packages/shared/src/jwks.ts backend/packages/shared/src/jwks.test.ts backend/packages/shared/src/index.ts && git commit -m "feat(shared): Apple JWKS fetch with KV caching"
+cd "/Users/kari/Documents/news-app" && git add backend/packages/shared/src/jwks.ts backend/packages/shared/src/jwks.test.ts backend/packages/shared/src/index.ts && git commit -m "feat(shared): Apple JWKS fetch with KV caching"
 ```
 
 ---
@@ -1013,14 +1016,14 @@ cd "/Users/kari/Documents/news app" && git add backend/packages/shared/src/jwks.
 ### Task 10: Implement Apple identity token verifier (TDD)
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/packages/shared/src/apple.ts`
-- Test: `/Users/kari/Documents/news app/backend/packages/shared/src/apple.test.ts`
+- Create: `/Users/kari/Documents/news-app/backend/packages/shared/src/apple.ts`
+- Test: `/Users/kari/Documents/news-app/backend/packages/shared/src/apple.test.ts`
 
 Verifies an Apple identity token JWT against Apple's JWKS using `jose.jwtVerify`. Returns the validated claims (`sub`, `email` if present, etc.).
 
 - [ ] **Step 1: Write the failing test**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/apple.test.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/apple.test.ts`:
 
 ```typescript
 import { describe, it, expect, beforeAll } from "vitest";
@@ -1109,14 +1112,14 @@ describe("verifyAppleIdentityToken", () => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run test
 ```
 
 Expected: **FAIL** — `verifyAppleIdentityToken` not defined.
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `/Users/kari/Documents/news app/backend/packages/shared/src/apple.ts`:
+Create `/Users/kari/Documents/news-app/backend/packages/shared/src/apple.ts`:
 
 ```typescript
 import { jwtVerify, importJWK, type JWK } from "jose";
@@ -1182,14 +1185,14 @@ export async function verifyAppleIdentityToken(params: VerifyAppleParams): Promi
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/shared run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/shared run test
 ```
 
 Expected: **PASS** — all 12 tests green (4 session + 3 jwks + 5 apple).
 
 - [ ] **Step 5: Re-export**
 
-Edit `/Users/kari/Documents/news app/backend/packages/shared/src/index.ts`:
+Edit `/Users/kari/Documents/news-app/backend/packages/shared/src/index.ts`:
 
 ```typescript
 export type { Env } from "./env.ts";
@@ -1205,7 +1208,7 @@ export type { AppleClaims, VerifyAppleParams } from "./apple.ts";
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/packages/shared/src/apple.ts backend/packages/shared/src/apple.test.ts backend/packages/shared/src/index.ts && git commit -m "feat(shared): Apple identity token verifier with jose"
+cd "/Users/kari/Documents/news-app" && git add backend/packages/shared/src/apple.ts backend/packages/shared/src/apple.test.ts backend/packages/shared/src/index.ts && git commit -m "feat(shared): Apple identity token verifier with jose"
 ```
 
 ---
@@ -1215,17 +1218,17 @@ cd "/Users/kari/Documents/news app" && git add backend/packages/shared/src/apple
 ### Task 11: Bootstrap the api worker with hello-world
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/workers/api/package.json`
-- Create: `/Users/kari/Documents/news app/backend/workers/api/tsconfig.json`
-- Create: `/Users/kari/Documents/news app/backend/workers/api/wrangler.toml`
-- Create: `/Users/kari/Documents/news app/backend/workers/api/src/index.ts`
-- Create: `/Users/kari/Documents/news app/backend/workers/api/src/types.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/package.json`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/tsconfig.json`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/wrangler.toml`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/src/index.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/src/types.ts`
 
 The minimal worker — Hono router, one health endpoint, all the bindings declared in `wrangler.toml` so we can apply the D1 migration through it.
 
 - [ ] **Step 1: Write `workers/api/package.json`**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/package.json`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/package.json`:
 
 ```json
 {
@@ -1259,14 +1262,13 @@ Create `/Users/kari/Documents/news app/backend/workers/api/package.json`:
 
 - [ ] **Step 2: Write `workers/api/tsconfig.json`**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/tsconfig.json`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/tsconfig.json`:
 
 ```json
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "types": ["@cloudflare/workers-types", "./worker-configuration.d.ts"],
-    "rootDir": "./src",
     "outDir": "./dist",
     "paths": {
       "@crimeboard/shared": ["../../packages/shared/src/index.ts"]
@@ -1276,11 +1278,13 @@ Create `/Users/kari/Documents/news app/backend/workers/api/tsconfig.json`:
 }
 ```
 
+(Note: no `rootDir` is set on the api worker because the path alias `@crimeboard/shared` resolves to `../../packages/shared/src/index.ts` — outside any `./src` rootDir. Since `noEmit: true` is inherited from the base, omitting `rootDir` is the standard monorepo + path-alias fix.)
+
 - [ ] **Step 3: Write `workers/api/wrangler.toml` for the dev environment**
 
 **Replace the placeholder IDs below with the values you saved in Task 5.**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/wrangler.toml`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/wrangler.toml`:
 
 ```toml
 name = "crimeboard-api"
@@ -1315,8 +1319,11 @@ queue = "crimeboard-ingest-dev"
 binding = "DEEPCHECK_QUEUE"
 queue = "crimeboard-deepcheck-dev"
 
-[ai]
-binding = "AI"
+# Workers AI binding intentionally omitted from this worker — the api-worker doesn't
+# use AI directly. AI inference happens in the cluster-builder and deep-check workers
+# (added in later plans), which will declare `[ai] binding = "AI"` in their own
+# wrangler.toml. Excluding AI here lets vitest-pool-workers run tests against this
+# wrangler.toml without needing external AI worker emulation in miniflare.
 
 [vars]
 APPLE_AUDIENCE = "com.bworthy.crimeboard"
@@ -1327,7 +1334,7 @@ APPLE_AUDIENCE = "com.bworthy.crimeboard"
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm install && pnpm exec wrangler types
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm install && pnpm exec wrangler types
 ```
 
 Expected: `pnpm install` finishes, then `wrangler types` writes a `worker-configuration.d.ts` file containing typed bindings inferred from `wrangler.toml`. (The file will get re-generated as bindings change.)
@@ -1336,7 +1343,7 @@ Expected: `pnpm install` finishes, then `wrangler types` writes a `worker-config
 
 We use `@crimeboard/shared`'s `Env` type as the canonical binding type rather than the auto-generated one — that keeps all workers aligned to the same shape.
 
-Create `/Users/kari/Documents/news app/backend/workers/api/src/types.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/src/types.ts`:
 
 ```typescript
 import type { Env } from "@crimeboard/shared";
@@ -1351,7 +1358,7 @@ export type AppBindings = { Bindings: Env; Variables: Variables };
 
 - [ ] **Step 6: Write `src/index.ts` with a hello-world health check**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/src/index.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/src/index.ts`:
 
 ```typescript
 import { Hono } from "hono";
@@ -1368,7 +1375,7 @@ export default app;
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm run typecheck
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm run typecheck
 ```
 
 Expected: no output (success).
@@ -1377,7 +1384,7 @@ Expected: no output (success).
 
 Run in one terminal:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm run dev
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm run dev
 ```
 
 Expected: Wrangler boots, prints `Ready on http://localhost:8787`.
@@ -1398,7 +1405,7 @@ Stop the dev server with Ctrl+C.
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm exec wrangler d1 migrations apply crimeboard-dev --local
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm exec wrangler d1 migrations apply crimeboard-dev --local
 ```
 
 Expected: Wrangler reports `Migrations to be applied: 0001_initial_schema.sql`, then `✅ Successfully applied`. The local D1 lives in `.wrangler/state/v3/d1/`.
@@ -1406,7 +1413,7 @@ Expected: Wrangler reports `Migrations to be applied: 0001_initial_schema.sql`, 
 Verify the tables exist:
 
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm exec wrangler d1 execute crimeboard-dev --local --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm exec wrangler d1 execute crimeboard-dev --local --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
 ```
 
 Expected output lists 6 tables: `articles`, `clusters`, `fact_checks`, `outlets`, `push_subscriptions`, `users` (plus the internal `_cf_KV` / `d1_migrations` housekeeping tables).
@@ -1415,7 +1422,7 @@ Expected output lists 6 tables: `articles`, `clusters`, `fact_checks`, `outlets`
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm exec wrangler d1 migrations apply crimeboard-dev --remote
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm exec wrangler d1 migrations apply crimeboard-dev --remote
 ```
 
 Expected: same `✅ Successfully applied` confirmation, this time against the cloud-hosted D1.
@@ -1425,7 +1432,7 @@ Expected: same `✅ Successfully applied` confirmation, this time against the cl
 Generate a strong secret and store it as a Wrangler secret:
 
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET
+cd "/Users/kari/Documents/news-app/backend/workers/api" && openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET
 ```
 
 Expected: prompt to confirm; on success, `✨ Success! Uploaded secret SESSION_SECRET`.
@@ -1434,7 +1441,7 @@ Expected: prompt to confirm; on success, `✨ Success! Uploaded secret SESSION_S
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/workers/api/package.json backend/workers/api/tsconfig.json backend/workers/api/wrangler.toml backend/workers/api/src/index.ts backend/workers/api/src/types.ts backend/workers/api/worker-configuration.d.ts backend/pnpm-lock.yaml && git commit -m "feat(api): bootstrap api-worker with Hono and /health endpoint"
+cd "/Users/kari/Documents/news-app" && git add backend/workers/api/package.json backend/workers/api/tsconfig.json backend/workers/api/wrangler.toml backend/workers/api/src/index.ts backend/workers/api/src/types.ts backend/workers/api/worker-configuration.d.ts backend/pnpm-lock.yaml && git commit -m "feat(api): bootstrap api-worker with Hono and /health endpoint"
 ```
 
 ---
@@ -1442,15 +1449,15 @@ cd "/Users/kari/Documents/news app" && git add backend/workers/api/package.json 
 ### Task 12: Set up vitest with vitest-pool-workers
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/workers/api/vitest.config.ts`
-- Create: `/Users/kari/Documents/news app/backend/workers/api/test/env.d.ts`
-- Create: `/Users/kari/Documents/news app/backend/workers/api/test/smoke.test.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/vitest.config.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/test/env.d.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/test/smoke.test.ts`
 
 `@cloudflare/vitest-pool-workers` runs tests inside a real Workers runtime with bindings (D1, KV, etc.) wired up via `wrangler.toml`. We can hit our Hono app with `SELF.fetch()` and assert on real responses.
 
 - [ ] **Step 1: Write the vitest config**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/vitest.config.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/vitest.config.ts`:
 
 ```typescript
 import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
@@ -1481,7 +1488,7 @@ export default defineWorkersConfig({
 
 - [ ] **Step 2: Write the env.d.ts for test types**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/test/env.d.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/test/env.d.ts`:
 
 ```typescript
 declare module "cloudflare:test" {
@@ -1493,7 +1500,7 @@ declare module "cloudflare:test" {
 
 - [ ] **Step 3: Write the smoke test**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/test/smoke.test.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/test/smoke.test.ts`:
 
 ```typescript
 import { describe, it, expect } from "vitest";
@@ -1513,14 +1520,14 @@ describe("api worker smoke", () => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm install && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm install && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: vitest boots the workers pool, runs the smoke test, prints `1 passed`. If you see a "miniflare" / D1 setup error, double-check that `wrangler d1 migrations apply crimeboard-dev --local` was run in Task 11.
 
 - [ ] **Step 5: Apply migrations to the test D1 (one-time setup helper)**
 
-Add a `pretest` script so the test D1 always has fresh schema. Edit `/Users/kari/Documents/news app/backend/workers/api/package.json` and replace the `"scripts"` block with:
+Add a `pretest` script so the test D1 always has fresh schema. Edit `/Users/kari/Documents/news-app/backend/workers/api/package.json` and replace the `"scripts"` block with:
 
 ```json
   "scripts": {
@@ -1539,7 +1546,7 @@ Add a `pretest` script so the test D1 always has fresh schema. Edit `/Users/kari
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: pretest applies migrations (no-op if already applied), then `1 passed`.
@@ -1548,7 +1555,7 @@ Expected: pretest applies migrations (no-op if already applied), then `1 passed`
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/workers/api/vitest.config.ts backend/workers/api/test/env.d.ts backend/workers/api/test/smoke.test.ts backend/workers/api/package.json backend/pnpm-lock.yaml && git commit -m "test(api): vitest-pool-workers smoke test against /health"
+cd "/Users/kari/Documents/news-app" && git add backend/workers/api/vitest.config.ts backend/workers/api/test/env.d.ts backend/workers/api/test/smoke.test.ts backend/workers/api/package.json backend/pnpm-lock.yaml && git commit -m "test(api): vitest-pool-workers smoke test against /health"
 ```
 
 ---
@@ -1556,14 +1563,14 @@ cd "/Users/kari/Documents/news app" && git add backend/workers/api/vitest.config
 ### Task 13: Implement session authn middleware (TDD)
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/workers/api/src/middleware/authn.ts`
-- Test: `/Users/kari/Documents/news app/backend/workers/api/test/authn.test.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/src/middleware/authn.ts`
+- Test: `/Users/kari/Documents/news-app/backend/workers/api/test/authn.test.ts`
 
 Hono middleware that reads `Authorization: Bearer <token>`, verifies it via `verifySessionToken`, stashes `userId` in the Hono context, or returns 401.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/test/authn.test.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/test/authn.test.ts`:
 
 ```typescript
 import { describe, it, expect } from "vitest";
@@ -1627,14 +1634,14 @@ describe("sessionAuthn middleware", () => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: **FAIL** — `Cannot find module '../src/middleware/authn.ts'`.
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/src/middleware/authn.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/src/middleware/authn.ts`:
 
 ```typescript
 import type { MiddlewareHandler } from "hono";
@@ -1665,7 +1672,7 @@ export const sessionAuthn: MiddlewareHandler<AppBindings> = async (c, next) => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: **PASS** — 5 tests now (smoke + 4 authn).
@@ -1674,7 +1681,7 @@ Expected: **PASS** — 5 tests now (smoke + 4 authn).
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/workers/api/src/middleware/authn.ts backend/workers/api/test/authn.test.ts && git commit -m "feat(api): sessionAuthn middleware verifies Bearer session tokens"
+cd "/Users/kari/Documents/news-app" && git add backend/workers/api/src/middleware/authn.ts backend/workers/api/test/authn.test.ts && git commit -m "feat(api): sessionAuthn middleware verifies Bearer session tokens"
 ```
 
 ---
@@ -1682,8 +1689,8 @@ cd "/Users/kari/Documents/news app" && git add backend/workers/api/src/middlewar
 ### Task 14: Implement POST /auth/apple (TDD)
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/workers/api/src/routes/auth.ts`
-- Test: `/Users/kari/Documents/news app/backend/workers/api/test/auth.test.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/src/routes/auth.ts`
+- Test: `/Users/kari/Documents/news-app/backend/workers/api/test/auth.test.ts`
 
 Receives `{ identityToken: string }`, verifies against Apple's JWKS, looks up or creates a user keyed by `apple_sub`, returns `{ sessionToken, user }`.
 
@@ -1691,7 +1698,7 @@ The test mocks the Apple JWKS fetch by stuffing a controlled JWKS into KV before
 
 - [ ] **Step 1: Write the failing test**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/test/auth.test.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/test/auth.test.ts`:
 
 ```typescript
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
@@ -1801,14 +1808,14 @@ describe("POST /auth/apple", () => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: **FAIL** — `/auth/apple` 404s (not yet routed). The new file path also fails to import.
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/src/routes/auth.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/src/routes/auth.ts`:
 
 ```typescript
 import { Hono } from "hono";
@@ -1906,7 +1913,7 @@ export default auth;
 
 - [ ] **Step 4: Wire `/auth` into the router**
 
-Edit `/Users/kari/Documents/news app/backend/workers/api/src/index.ts`:
+Edit `/Users/kari/Documents/news-app/backend/workers/api/src/index.ts`:
 
 ```typescript
 import { Hono } from "hono";
@@ -1926,7 +1933,7 @@ export default app;
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: **PASS** — 9 tests now (1 smoke + 4 authn + 4 auth/apple).
@@ -1935,7 +1942,7 @@ Expected: **PASS** — 9 tests now (1 smoke + 4 authn + 4 auth/apple).
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/workers/api/src/routes/auth.ts backend/workers/api/src/index.ts backend/workers/api/test/auth.test.ts && git commit -m "feat(api): POST /auth/apple verifies identity token, upserts user, mints session"
+cd "/Users/kari/Documents/news-app" && git add backend/workers/api/src/routes/auth.ts backend/workers/api/src/index.ts backend/workers/api/test/auth.test.ts && git commit -m "feat(api): POST /auth/apple verifies identity token, upserts user, mints session"
 ```
 
 ---
@@ -1943,15 +1950,15 @@ cd "/Users/kari/Documents/news app" && git add backend/workers/api/src/routes/au
 ### Task 15: Implement GET /me and PATCH /me (TDD)
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/workers/api/src/routes/me.ts`
-- Test: `/Users/kari/Documents/news app/backend/workers/api/test/me.test.ts`
-- Modify: `/Users/kari/Documents/news app/backend/workers/api/src/index.ts`
+- Create: `/Users/kari/Documents/news-app/backend/workers/api/src/routes/me.ts`
+- Test: `/Users/kari/Documents/news-app/backend/workers/api/test/me.test.ts`
+- Modify: `/Users/kari/Documents/news-app/backend/workers/api/src/index.ts`
 
 `GET /me` returns the current user's prefs. `PATCH /me` lets the iOS app update `feed_mode`, `selected_topics`, `selected_outlets`, `excluded_outlets`, `notification_prefs`. Both require auth.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/test/me.test.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/test/me.test.ts`:
 
 ```typescript
 import { describe, it, expect, beforeEach } from "vitest";
@@ -2065,14 +2072,14 @@ describe("PATCH /me", () => {
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: **FAIL** — `/me` 404s.
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `/Users/kari/Documents/news app/backend/workers/api/src/routes/me.ts`:
+Create `/Users/kari/Documents/news-app/backend/workers/api/src/routes/me.ts`:
 
 ```typescript
 import { Hono } from "hono";
@@ -2196,7 +2203,7 @@ export default me;
 
 - [ ] **Step 4: Wire `/me` into the router**
 
-Edit `/Users/kari/Documents/news app/backend/workers/api/src/index.ts`:
+Edit `/Users/kari/Documents/news-app/backend/workers/api/src/index.ts`:
 
 ```typescript
 import { Hono } from "hono";
@@ -2218,7 +2225,7 @@ export default app;
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm --filter @crimeboard/api run test
+cd "/Users/kari/Documents/news-app/backend" && pnpm --filter @crimeboard/api run test
 ```
 
 Expected: **PASS** — 14 tests now (1 smoke + 4 authn + 4 auth/apple + 5 me).
@@ -2227,7 +2234,7 @@ Expected: **PASS** — 14 tests now (1 smoke + 4 authn + 4 auth/apple + 5 me).
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/workers/api/src/routes/me.ts backend/workers/api/test/me.test.ts backend/workers/api/src/index.ts && git commit -m "feat(api): GET / PATCH /me for user prefs (auth-gated)"
+cd "/Users/kari/Documents/news-app" && git add backend/workers/api/src/routes/me.ts backend/workers/api/test/me.test.ts backend/workers/api/src/index.ts && git commit -m "feat(api): GET / PATCH /me for user prefs (auth-gated)"
 ```
 
 ---
@@ -2242,7 +2249,7 @@ This is a smoke check that the deployed dev worker actually works. It catches is
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm exec wrangler deploy
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm exec wrangler deploy
 ```
 
 Expected: deploy succeeds, prints the worker's public URL (e.g. `https://crimeboard-api.<your-subdomain>.workers.dev`). **Save the URL** — you'll need it.
@@ -2283,7 +2290,7 @@ Expected: `401`
 ### Task 17: Provision staging + production resources and configure environments
 
 **Files:**
-- Modify: `/Users/kari/Documents/news app/backend/workers/api/wrangler.toml`
+- Modify: `/Users/kari/Documents/news-app/backend/workers/api/wrangler.toml`
 
 We don't deploy to prod yet (no users to serve), but we provision the resources now so the env config is locked in and can't drift.
 
@@ -2291,7 +2298,7 @@ We don't deploy to prod yet (no users to serve), but we provision the resources 
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler d1 create crimeboard-staging && pnpm exec wrangler kv namespace create crimeboard-cache-staging && pnpm exec wrangler r2 bucket create crimeboard-archive-staging && pnpm exec wrangler queues create crimeboard-ingest-staging && pnpm exec wrangler queues create crimeboard-deepcheck-staging
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler d1 create crimeboard-staging && pnpm exec wrangler kv namespace create crimeboard-cache-staging && pnpm exec wrangler r2 bucket create crimeboard-archive-staging && pnpm exec wrangler queues create crimeboard-ingest-staging && pnpm exec wrangler queues create crimeboard-deepcheck-staging
 ```
 
 Expected: each create command succeeds. **Save the D1 ID and KV ID** for staging.
@@ -2300,14 +2307,14 @@ Expected: each create command succeeds. **Save the D1 ID and KV ID** for staging
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm exec wrangler d1 create crimeboard-prod && pnpm exec wrangler kv namespace create crimeboard-cache-prod && pnpm exec wrangler r2 bucket create crimeboard-archive-prod && pnpm exec wrangler queues create crimeboard-ingest-prod && pnpm exec wrangler queues create crimeboard-deepcheck-prod
+cd "/Users/kari/Documents/news-app/backend" && pnpm exec wrangler d1 create crimeboard-prod && pnpm exec wrangler kv namespace create crimeboard-cache-prod && pnpm exec wrangler r2 bucket create crimeboard-archive-prod && pnpm exec wrangler queues create crimeboard-ingest-prod && pnpm exec wrangler queues create crimeboard-deepcheck-prod
 ```
 
 Expected: each create command succeeds. **Save the D1 ID and KV ID** for prod.
 
 - [ ] **Step 3: Add staging + production environments to wrangler.toml**
 
-Edit `/Users/kari/Documents/news app/backend/workers/api/wrangler.toml` to append (replace placeholders with the IDs you just saved):
+Edit `/Users/kari/Documents/news-app/backend/workers/api/wrangler.toml` to append (replace placeholders with the IDs you just saved):
 
 ```toml
 
@@ -2384,12 +2391,12 @@ APPLE_AUDIENCE = "com.bworthy.crimeboard"
 
 Run for staging:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET --env staging
+cd "/Users/kari/Documents/news-app/backend/workers/api" && openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET --env staging
 ```
 
 Then for production:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET --env production
+cd "/Users/kari/Documents/news-app/backend/workers/api" && openssl rand -base64 48 | pnpm exec wrangler secret put SESSION_SECRET --env production
 ```
 
 Expected: each prints `✨ Success! Uploaded secret SESSION_SECRET`. (Use a *different* secret for each environment — never reuse.)
@@ -2398,7 +2405,7 @@ Expected: each prints `✨ Success! Uploaded secret SESSION_SECRET`. (Use a *dif
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend/workers/api" && pnpm exec wrangler d1 migrations apply crimeboard-staging --remote && pnpm exec wrangler d1 migrations apply crimeboard-prod --remote
+cd "/Users/kari/Documents/news-app/backend/workers/api" && pnpm exec wrangler d1 migrations apply crimeboard-staging --remote && pnpm exec wrangler d1 migrations apply crimeboard-prod --remote
 ```
 
 Expected: both migrations succeed.
@@ -2407,7 +2414,7 @@ Expected: both migrations succeed.
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app/backend" && pnpm run deploy:staging
+cd "/Users/kari/Documents/news-app/backend" && pnpm run deploy:staging
 ```
 
 Expected: deploy succeeds, prints staging worker URL.
@@ -2425,7 +2432,7 @@ Expected: `{"ok":true,"service":"crimeboard-api"}`
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/workers/api/wrangler.toml && git commit -m "feat(api): add staging and production environments to wrangler.toml"
+cd "/Users/kari/Documents/news-app" && git add backend/workers/api/wrangler.toml && git commit -m "feat(api): add staging and production environments to wrangler.toml"
 ```
 
 ---
@@ -2435,13 +2442,13 @@ cd "/Users/kari/Documents/news app" && git add backend/workers/api/wrangler.toml
 ### Task 18: Backend README with operating instructions
 
 **Files:**
-- Create: `/Users/kari/Documents/news app/backend/README.md`
+- Create: `/Users/kari/Documents/news-app/backend/README.md`
 
 A short README so the engineer (or a future you) can come back in 6 months and remember how to operate this thing.
 
 - [ ] **Step 1: Write the README**
 
-Create `/Users/kari/Documents/news app/backend/README.md`:
+Create `/Users/kari/Documents/news-app/backend/README.md`:
 
 ````markdown
 # THE CRIME BOARD — Backend
@@ -2552,7 +2559,7 @@ The `pretest` hook on `@crimeboard/api` re-applies D1 migrations to the local te
 
 Run:
 ```bash
-cd "/Users/kari/Documents/news app" && git add backend/README.md && git commit -m "docs(backend): operating README with dev / deploy / migrations / secrets"
+cd "/Users/kari/Documents/news-app" && git add backend/README.md && git commit -m "docs(backend): operating README with dev / deploy / migrations / secrets"
 ```
 
 ---
