@@ -53,15 +53,27 @@ public struct DateStamp: View {
         return "\(month) \(day) · \(year)"
     }
 
+    /// "May 3, 2026" for the VoiceOver label. Hand-built from calendar
+    /// components rather than `DateFormatter` so the accessibility label path
+    /// doesn't allocate a formatter on every render — symmetric with the
+    /// `formatted` helper above.
     private var longFormatted: String {
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.dateFormat = "MMMM d, yyyy"
-        return formatter.string(from: date)
+        let comps = calendar.dateComponents([.month, .day, .year], from: date)
+        let month = monthFull(comps.month ?? 1)
+        let day = comps.day ?? 1
+        let year = comps.year ?? 2026
+        return "\(month) \(day), \(year)"
     }
 
     private func monthShort(_ m: Int) -> String {
         let months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
+        let idx = max(1, min(12, m)) - 1
+        return months[idx]
+    }
+
+    private func monthFull(_ m: Int) -> String {
+        let months = ["January","February","March","April","May","June",
+                      "July","August","September","October","November","December"]
         let idx = max(1, min(12, m)) - 1
         return months[idx]
     }

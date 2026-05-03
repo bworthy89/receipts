@@ -39,7 +39,7 @@ struct PinLayoutTests {
     }
 
     /// Pins distribute across both columns — the brief asks for "loose 2-
-    /// column rhythm". With 10 pins and column centerlines at 30%/70%, both
+    /// column rhythm". With 10 pins and column centerlines at 25%/75%, both
     /// halves of the board should be hit. Threshold of "≥3 in each half"
     /// allows for jitter without false positives.
     @Test("Pins distribute across both columns")
