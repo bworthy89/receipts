@@ -2,8 +2,8 @@
 //
 // Project-wide Reduce Motion convention. DesignSystem itself doesn't animate,
 // but Choreography and feature packages reach for `MotionMode` (read from the
-// SwiftUI environment) and `motionVariant(full:reduced:)` to provide the
-// per-animation static fallback PRODUCT.md mandates.
+// SwiftUI environment) and `MotionVariant` to provide the per-animation static
+// fallback PRODUCT.md mandates.
 //
 // Per the shape brief Q8-b: typed enum + helper, reads SwiftUI's native
 // `accessibilityReduceMotion` value. No custom env state to maintain.
@@ -24,46 +24,47 @@ public enum MotionMode: Sendable {
     /// Information conveyed is identical; vestibular cost is removed.
     case reduced
 
-    /// Read the mode from a SwiftUI environment (the standard
-    /// `accessibilityReduceMotion` value, mapped to this enum for ergonomics).
+    /// Map a raw `accessibilityReduceMotion` boolean to this enum.
     public static func from(reduceMotion: Bool) -> MotionMode {
         reduceMotion ? .reduced : .full
     }
 }
 
-extension View {
-
-    /// Pick between two view variants based on the current SwiftUI
-    /// `accessibilityReduceMotion` environment value. The `full` and `reduced`
-    /// closures must convey the same information — different presentation, same
-    /// case-state outcome.
-    ///
-    /// ```swift
-    /// content.motionVariant(
-    ///     full:    { PinDrop(target: card) },
-    ///     reduced: { card.overlay(PinHighlight()) }
-    /// )
-    /// ```
-    public func motionVariant<Full: View, Reduced: View>(
-        @ViewBuilder full: () -> Full,
-        @ViewBuilder reduced: () -> Reduced
-    ) -> some View {
-        modifier(MotionVariantModifier(full: full(), reduced: reduced()))
-    }
-}
-
-private struct MotionVariantModifier<Full: View, Reduced: View>: ViewModifier {
+/// Render one of two view variants based on the SwiftUI
+/// `accessibilityReduceMotion` environment value. The `full` and `reduced`
+/// branches must convey the same information — different presentation, same
+/// case-state outcome.
+///
+/// ```swift
+/// MotionVariant(
+///     full:    { PinDrop(target: card) },
+///     reduced: { card.overlay(PinHighlight()) }
+/// )
+/// ```
+///
+/// This is a `View`, not a `ViewModifier`, on purpose: a modifier API like
+/// `.motionVariant(full:reduced:)` reads as decorating the receiver, but the
+/// implementation must throw the receiver away and pick one of the two
+/// branches. Making the variant explicit at the call site keeps the
+/// semantics honest.
+public struct MotionVariant<Full: View, Reduced: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    let full: Full
-    let reduced: Reduced
+    private let full: () -> Full
+    private let reduced: () -> Reduced
 
-    func body(content: Content) -> some View {
-        // The `content` argument is ignored on purpose — `motionVariant` swaps
-        // the WHOLE view, not decorates it. The two branches are the variants.
+    public init(
+        @ViewBuilder full: @escaping () -> Full,
+        @ViewBuilder reduced: @escaping () -> Reduced
+    ) {
+        self.full = full
+        self.reduced = reduced
+    }
+
+    public var body: some View {
         if reduceMotion {
-            reduced
+            reduced()
         } else {
-            full
+            full()
         }
     }
 }

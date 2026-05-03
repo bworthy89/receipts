@@ -63,12 +63,7 @@ struct ColorTokenTests {
 
     /// Light and dark variants resolve to different sRGB values.
     /// Cork in light should be brighter than cork in dark (Dim Room mode).
-    ///
-    /// iOS-only: `Color(light:dark:)` uses `UITraitCollection`'s dynamic provider,
-    /// which doesn't exist on macOS. Running this test on the macOS test host
-    /// would resolve both schemes to the same `light` value (the macOS fallback
-    /// branch in the initializer) and the test would be meaningless.
-    #if canImport(UIKit)
+    /// Runs on both iOS (UITraitCollection-driven) and macOS (NSAppearance-driven).
     @Test("cork has distinct light and dark variants")
     func corkLightVsDark() throws {
         let lightRGB = try resolveSRGB(Color.cork, scheme: .light)
@@ -78,7 +73,6 @@ struct ColorTokenTests {
         let darkSum = darkRGB.red + darkRGB.green + darkRGB.blue
         #expect(lightSum > darkSum)  // light mode is brighter than Dim Room dark
     }
-    #endif
 }
 
 // MARK: - Test helper: resolve a SwiftUI Color to sRGB under a specific color scheme
@@ -110,13 +104,18 @@ private func resolveSRGB(_ color: Color, scheme: ColorScheme) throws -> RGBA {
     return RGBA(red: Double(r), green: Double(g), blue: Double(b), alpha: Double(a))
 }
 #else
-// macOS host fallback (the swift test runner builds for macOS host).
-// We reuse the SwiftUI Color → CGColor conversion which works on macOS too.
+// macOS host (the swift test runner builds for macOS host).
+// Drives NSColor's dynamic provider via NSAppearance.performAsCurrentDrawingAppearance.
 import AppKit
 
 private func resolveSRGB(_ color: Color, scheme: ColorScheme) throws -> RGBA {
-    let nsColor = NSColor(color)
-    guard let converted = nsColor.usingColorSpace(.sRGB) else {
+    let appearanceName: NSAppearance.Name = scheme == .dark ? .darkAqua : .aqua
+    let appearance = NSAppearance(named: appearanceName)!
+    var resolved: NSColor?
+    appearance.performAsCurrentDrawingAppearance {
+        resolved = NSColor(color).usingColorSpace(.sRGB)
+    }
+    guard let converted = resolved else {
         throw ColorResolveError.couldNotExtractComponents
     }
     return RGBA(

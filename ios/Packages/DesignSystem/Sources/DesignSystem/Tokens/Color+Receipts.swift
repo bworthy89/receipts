@@ -95,8 +95,15 @@ extension Color {
 
 // MARK: - Color(light:dark:) helper
 //
-// SwiftUI doesn't ship a built-in light/dark literal initializer. Wrap UIColor's
-// dynamic provider so consumers see a clean SwiftUI Color.
+// SwiftUI doesn't ship a built-in light/dark literal initializer. Wrap each
+// platform's dynamic-color provider so consumers see a clean SwiftUI Color
+// that resolves correctly to the right variant per system appearance.
+//
+// iOS:   UIColor's `init(dynamicProvider:)` reads UITraitCollection.
+// macOS: NSColor's `init(name:dynamicProvider:)` reads NSAppearance.
+//
+// Both branches must work — the test target runs on the macOS host, and the
+// "cork has distinct light and dark variants" test exercises the macOS path.
 
 extension Color {
     fileprivate init(light: Color, dark: Color) {
@@ -105,6 +112,11 @@ extension Color {
             traits.userInterfaceStyle == .dark
                 ? UIColor(dark)
                 : UIColor(light)
+        })
+        #elseif canImport(AppKit)
+        self = Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .vibrantDark, .accessibilityHighContrastDarkAqua, .accessibilityHighContrastVibrantDark]) != nil
+            return isDark ? NSColor(dark) : NSColor(light)
         })
         #else
         self = light

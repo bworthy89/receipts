@@ -37,6 +37,6 @@ public struct MarkerNote: View {
                     .overlay(Color.evidence.opacity(0.06))
             )
             .rotationEffect(rotation)
-            .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+            .shadow(color: Color.shadowTint.opacity(0.20), radius: 1, x: 0, y: 1)
     }
 }
