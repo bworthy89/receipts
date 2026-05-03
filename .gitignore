@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Node / pnpm (used in backend/)
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+
+# Cloudflare Wrangler
+.wrangler/
+.dev.vars
+.env
+
+# Superpowers (visual companion mockups, brainstorm artifacts)
+.superpowers/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test output
+coverage/
