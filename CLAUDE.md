@@ -10,6 +10,19 @@ Two sub-projects in one repo:
 - `backend/` — Cloudflare Workers monorepo (TypeScript)
 - `ios/` — Native SwiftUI app (iOS 26+, Swift 6.2)
 
+## Current state on `main`
+
+iOS surfaces shipped (PR-numbered):
+- **#1** scaffolding — SwiftUI app, 4 SPM packages, `/health` dev probe.
+- **#4 DesignSystem** — palette tokens, fonts, elevation, spacing, 5 substrate primitives (CorkBoard, PaperSurface, MonoLabel, StoryText, MarkerNote), `DesignSystemCatalog` review surface.
+- **#5 Choreography** — 4 signature motions (`PinDrop`, `RedString`, `PolaroidDevelop`, `StampSlam`) with per-effect Reduce-Motion variants, `ChoreographyAnchor`/`ChoreographyBoard` for view-to-view geometry, `ChoreographyCatalog` test bench.
+- **#6 DailyBriefing** — home surface: cork board with 10 organic-chaos torn-paper pins, `StagingGate` (first-per-day staging via `UserDefaults`), `MockProvider` with 10 wire-service-register mock cases.
+- **#7 DeepCheck** — fullScreenCover investigation surface: hub-and-spoke 5-source layout, 4-motion choreographed sequence (~5.5s), centerpiece verdict slam, evidence dossier below the fold, `InvestigationLog` (per-case skip-on-revisit). Promoted `Case` into `Models` so DailyBriefing + DeepCheck share without a cycle.
+
+User flow today: app opens to Daily Briefing → tap a torn-paper pin → fullScreenCover into Deep Check → watch the investigation play → scroll into evidence dossier → × CLOSE returns to briefing. All data is mock; backend wiring is the next architectural step.
+
+Backend on `main`: scaffolding + `/health` only. Real provider endpoints (`/briefing`, `/investigation/:caseID`) are unbuilt.
+
 ## Read these first, in this order
 
 Every UI / copy / visual / product task must start by reading the canonical docs at project root:
@@ -85,6 +98,9 @@ cd ios/Packages/Models && swift test
 cd ios/Packages/APIClient && swift test         # includes live network tests against deployed dev/staging
 cd ios/Packages/PersistenceKit && swift test    # exercises real Keychain
 cd ios/Packages/DesignSystem && swift test
+cd ios/Packages/Choreography && swift test
+cd ios/Packages/DailyBriefing && swift test
+cd ios/Packages/DeepCheck && swift test
 cd ios/Packages/OnDeviceAI && swift build       # no tests yet
 ```
 
@@ -93,16 +109,34 @@ cd ios/Packages/OnDeviceAI && swift build       # no tests yet
 **Conventions:**
 - Swift 6.2 with strict concurrency complete. `Sendable` is `any Sendable` (the explicit `any` keyword is required).
 - MV pattern with `@Observable` stores; no MVVM-per-View.
-- Local SPM packages in `ios/Packages/` — each one focused, dependencies one-way (Models → APIClient → PersistenceKit; DesignSystem → Choreography → feature packages).
+- Local SPM packages in `ios/Packages/` — each one focused, dependencies one-way (Models → APIClient → PersistenceKit; DesignSystem → Choreography → feature packages; feature packages depend on Models for shared domain types like `Case`).
 - Bundle ID `com.bworthy.receipts`. iOS 26+ minimum (Foundation Models requirement).
-- The dev probe ContentView calls `APIClient(environment: .dev).health()` and shows the response — proves the whole stack works end-to-end. DEBUG builds also show a "View DesignSystem Catalog" button presenting `DesignSystemCatalog` as a sheet.
+- ContentView is `NavigationStack { DailyBriefingScreen }` in production. DEBUG builds get a wrench overlay in the bottom-right that presents a sheet with the dev probe (`APIClient.health()`), DesignSystem catalog, and Choreography catalog — keeps dev affordances out of the user-facing surface.
+- DEBUG-only launch arg `-DeepCheckCaseID mock-headline-N` opens DeepCheck on a specific case immediately, bypassing the briefing tap. Used by the screenshot harness; ungated production builds never see it.
+
+**Cross-platform gotcha.** Feature packages build against both iOS (production) and macOS (test host). Code that uses iOS-only APIs (e.g., `.fullScreenCover`, `.navigationBarTitleDisplayMode`) must be wrapped in `#if os(iOS)`. The package `swift test` invocation runs on macOS — it's how every `@MainActor` view smoke test runs without a simulator boot.
+
+**Replay-on-revisit pattern.** Two implementations live in feature packages and follow the same shape: `StagingGate` (DailyBriefing — gates "first-per-day" lights-up + pin-drop staging) and `InvestigationLog` (DeepCheck — gates "first-per-case" 4-motion sequence). Both wrap a `Store` protocol that `UserDefaults` adapts to (DeepCheck uses a wrapper struct rather than retroactive conformance to avoid a duplicate-witness collision with DailyBriefing). When a third caller appears, lift the pattern into a shared utility.
 
 **`DesignSystem` package is the visual contract** (palette, fonts, elevation, spacing, MotionMode + MotionVariant, 5 substrate primitives — CorkBoard, PaperSurface, MonoLabel, StoryText, MarkerNote). Every UI surface composes from these tokens; never hand-roll colors, fonts, or shadows. The `DesignSystemCatalog` view is the visual contract — when iterating tokens, present this catalog in the simulator and screenshot for review.
 
 **Color token rules baked into the package:**
 - `Color.cork` / `paper` / `ink` / `evidence` / `sepia` / `pencil` are the only public color tokens. Internal `Color.shadowTint` is for the elevation modifiers only.
 - "Dim Room" dark mode — same warm palette lighting-shifted, NOT system inverted dark. Light + dark variants resolve via UIKit (`UITraitCollection`) on iOS and AppKit (`NSAppearance`) on macOS host.
-- The Red-String Rule is non-negotiable: `Color.evidence` is for connection / verdict / flag only, never general accents.
+- The Red-String Rule is non-negotiable: `Color.evidence` is for connection / verdict / flag only, never general accents. DailyBriefing uses zero red on the briefing layer (no investigations have happened); DeepCheck is where Evidence Red lands (5 strings + verdict stamp), and that's still inside the ≤10% screen budget because rarity is the point.
+
+**Choreography surface (already shipped):**
+- 4 motion views — `PinDrop`, `RedString`, `PolaroidDevelop`, `StampSlam` — each takes `delay:` + optional `duration:` so a sequencer can compose them. `Choreography.ChoreographyTiming` holds per-motion natural durations; `Duration.seconds` is internal so DSL bridges live inside Choreography. When you need easing curves outside Choreography, hardcode the cubic-bezier factor and reference the timing constant by name in a comment.
+- Reduce Motion is per-effect (each motion has a `reduceMotion` env-driven branch that snaps to the settled state). Sequencers that drive multiple motions must check Reduce Motion BEFORE arming any "scale 1.6 → 1.0 + opacity 0 → 1" state, or the user sees an invisible element until a multi-second delay completes (greptile P1 on PR #7).
+- `ChoreographyAnchor("id")` registers a view position via SwiftUI `PreferenceKey`. `ChoreographyBoard` is the container that resolves anchors and renders `RedString` requests. Anchor IDs are scoped to the board instance; one board per investigation surface.
+
+**Feature-package layout pattern (DailyBriefing + DeepCheck):**
+- `Sources/{Pkg}/Models/` — domain types (or extensions of shared `Models.Case`).
+- `Sources/{Pkg}/Providers/` — Provider protocol + MockProvider.
+- `Sources/{Pkg}/State/` — UserDefaults-backed gates (StagingGate / InvestigationLog).
+- `Sources/{Pkg}/Layout/` — pure-Swift placement math (seeded RNG → positions). `iPhone-portrait viewport is narrow` — 393pt is the v1 design target; layouts that look elegant in a wide grid (true radial hub-and-spoke) clip on a phone. Hand-tuned offset tables beat generated radial math when 5+ items need to fit alongside a centerpiece.
+- `Sources/{Pkg}/Views/` — SwiftUI surfaces; one Screen view per feature, decomposed into pin/card/section views.
+- `Tests/{Pkg}Tests/` — Swift Testing `@Suite` + `@Test`. View construction tests are `@MainActor`.
 
 ## Skills you'll use
 
