@@ -6,12 +6,22 @@ options:
   developmentLanguage: en
   groupSortPosition: top
   generateEmptyDirectories: true
+configs:
+  Debug: debug
+  Release: release
 settings:
   base:
     SWIFT_VERSION: 6.2
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_UPCOMING_FEATURE_INTERNAL_IMPORTS_BY_DEFAULT: YES
     ENABLE_USER_SCRIPT_SANDBOXING: YES
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      GCC_PREPROCESSOR_DEFINITIONS: "DEBUG=1 $(inherited)"
+      SWIFT_OPTIMIZATION_LEVEL: -Onone
+    Release:
+      SWIFT_OPTIMIZATION_LEVEL: -O
 
 packages:
   Models:
@@ -22,6 +32,8 @@ packages:
     path: Packages/PersistenceKit
   OnDeviceAI:
     path: Packages/OnDeviceAI
+  DesignSystem:
+    path: Packages/DesignSystem
 
 targets:
   Receipts:
@@ -36,6 +48,7 @@ targets:
       - package: APIClient
       - package: PersistenceKit
       - package: OnDeviceAI
+      - package: DesignSystem
     settings:
       base:
         PRODUCT_NAME: Receipts
