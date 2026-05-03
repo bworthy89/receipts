@@ -87,6 +87,16 @@ extension Color {
     // Dim Room dark mode = a deeper near-black than `ink` itself, because cork
     // in dark mode is already mid-luminance brown — using `ink` (which sits
     // near the dim-cork luminance) would make shadows invisible.
+    //
+    // The Dim-Room dark variant intentionally sits very close to pure black.
+    // The No-Pure-Black Rule (DESIGN.md §2) governs visible *fills* — surfaces,
+    // type, ink — where chroma=0 reads as institutional / cold. This token is
+    // a *shadow tint*, never rendered at >0.80 alpha, never seen as a flat
+    // surface. A "warm" near-black at low alpha gets visually swallowed by the
+    // mid-luminance cork it falls on; the value below is tuned for "dark
+    // enough to register against dim cork at 30-80% alpha", not for
+    // freestanding chroma. Don't bump the chroma toward warm without first
+    // re-checking shadow visibility on dim cork — they'll vanish.
     static let shadowTint = Color(
         light: Color(.sRGB, red: 0.110, green: 0.090, blue: 0.060),
         dark:  Color(.sRGB, red: 0.020, green: 0.014, blue: 0.005)

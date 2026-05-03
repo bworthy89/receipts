@@ -5,7 +5,10 @@ import DesignSystem
 
 struct ContentView: View {
     @State private var status: ProbeStatus = .idle
+
+    #if DEBUG
     @State private var showingCatalog = false
+    #endif
 
     enum ProbeStatus: Sendable, Equatable {
         case idle
