@@ -25,6 +25,7 @@ targets:
         UILaunchScreen: {}
     settings:
       base:
+        PRODUCT_NAME: Receipts
         PRODUCT_BUNDLE_IDENTIFIER: com.bworthy.receipts
         TARGETED_DEVICE_FAMILY: "1,2"  # iPhone + iPad
         SUPPORTS_MACCATALYST: NO
