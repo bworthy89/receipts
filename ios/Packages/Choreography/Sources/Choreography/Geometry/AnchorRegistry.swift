@@ -37,6 +37,7 @@ public struct ChoreographyBoard<Content: View>: View {
                                     start: geo[fromAnchor],
                                     end: geo[toAnchor],
                                     sag: req.sag,
+                                    delay: req.delay,
                                     duration: req.duration
                                 )
                             }
@@ -58,5 +59,6 @@ struct RedStringRequest: Identifiable, Equatable {
     let from: String
     let to: String
     let sag: CGFloat
+    let delay: Duration
     let duration: Duration
 }

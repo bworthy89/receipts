@@ -32,6 +32,7 @@ public struct RedString: View {
     private let from: String
     private let to: String
     private let sag: CGFloat
+    private let delay: Duration
     private let duration: Duration
 
     /// Connect two pinned views inside a `ChoreographyBoard`.
@@ -41,17 +42,22 @@ public struct RedString: View {
     ///   - to: The id of the `.choreographyAnchor("...")` to end the string at.
     ///   - sag: Perpendicular drop at the path midpoint, in pt. Default 8pt
     ///     gives a "draped yarn" feel without crossing into "loose cable."
+    ///   - delay: Delay before the stroke starts on mount. Used by sequencer
+    ///     code (catalog stagger, Daily Briefing wake-up) to vary entrance
+    ///     pace. Mirrors `PinDrop` / `PolaroidDevelop` / `StampSlam`.
     ///   - duration: Override the natural duration. `nil` uses
     ///     `ChoreographyTiming.redString` (920ms).
     public init(
         from: String,
         to: String,
         sag: CGFloat = 8,
+        delay: Duration = .zero,
         duration: Duration? = nil
     ) {
         self.from = from
         self.to = to
         self.sag = sag
+        self.delay = delay
         self.duration = duration ?? ChoreographyTiming.redString
     }
 
@@ -71,6 +77,7 @@ public struct RedString: View {
                             from: from,
                             to: to,
                             sag: sag,
+                            delay: delay,
                             duration: duration
                         )
                     ]
@@ -90,6 +97,7 @@ struct AnimatingRedString: View {
     let start: CGPoint
     let end: CGPoint
     let sag: CGFloat
+    let delay: Duration
     let duration: Duration
 
     @State private var progress: Double = 0
@@ -122,6 +130,8 @@ struct AnimatingRedString: View {
     }
 
     private func play() async throws {
+        try await Task.sleep(for: delay)
+
         if reduceMotion {
             withAnimation(.easeOut(duration: ChoreographyTiming.reducedDuration.seconds)) {
                 progress = 1

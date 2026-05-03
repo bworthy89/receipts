@@ -18,6 +18,7 @@ struct ChoreographyStateTests {
             from: "a",
             to: "b",
             sag: 8,
+            delay: .zero,
             duration: ChoreographyTiming.redString
         )
         let r2 = RedStringRequest(
@@ -25,6 +26,7 @@ struct ChoreographyStateTests {
             from: "b",
             to: "c",
             sag: 4,
+            delay: .milliseconds(80),
             duration: ChoreographyTiming.redString
         )
 
@@ -49,6 +51,7 @@ struct ChoreographyStateTests {
             from: "reuters",
             to: "ap",
             sag: 8,
+            delay: .zero,
             duration: .milliseconds(920)
         )
         #expect(req.id == "reuters→ap")
@@ -60,11 +63,13 @@ struct ChoreographyStateTests {
     /// short-circuit when nothing changed.
     @Test("RedStringRequest is Equatable")
     func requestEquatable() {
-        let a = RedStringRequest(id: "x→y", from: "x", to: "y", sag: 8, duration: .milliseconds(920))
-        let b = RedStringRequest(id: "x→y", from: "x", to: "y", sag: 8, duration: .milliseconds(920))
-        let c = RedStringRequest(id: "x→z", from: "x", to: "z", sag: 8, duration: .milliseconds(920))
+        let a = RedStringRequest(id: "x→y", from: "x", to: "y", sag: 8, delay: .zero, duration: .milliseconds(920))
+        let b = RedStringRequest(id: "x→y", from: "x", to: "y", sag: 8, delay: .zero, duration: .milliseconds(920))
+        let c = RedStringRequest(id: "x→z", from: "x", to: "z", sag: 8, delay: .zero, duration: .milliseconds(920))
+        let d = RedStringRequest(id: "x→y", from: "x", to: "y", sag: 8, delay: .milliseconds(80), duration: .milliseconds(920))
         #expect(a == b)
         #expect(a != c)
+        #expect(a != d)  // delay is part of identity for re-emit equality
     }
 
     /// Default `ChoreographyState` is fully empty.

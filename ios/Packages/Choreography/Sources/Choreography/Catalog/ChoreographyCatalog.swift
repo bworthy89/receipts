@@ -148,7 +148,11 @@ private struct RedStringCell: View {
                     }
                     .padding(.horizontal, 12)
 
-                    RedString(from: "rs-reuters", to: "rs-ap")
+                    RedString(
+                        from: "rs-reuters",
+                        to: "rs-ap",
+                        delay: stagger(cellIndex)
+                    )
                 }
             }
             .id(replayToken)
