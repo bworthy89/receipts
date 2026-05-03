@@ -113,33 +113,32 @@ struct AnimatingRedString: View {
                 color: Color.ink.opacity(0.30),
                 radius: 1.5, x: 0, y: 1.5
             )
-            .onAppear {
-                play()
+            .task {
+                // Single structured task — when the parent view disappears
+                // mid-draw, `try await` propagates cancellation and the
+                // twang haptic is NOT scheduled on a removed view.
+                try? await play()
             }
     }
 
-    private func play() {
+    private func play() async throws {
         if reduceMotion {
             withAnimation(.easeOut(duration: ChoreographyTiming.reducedDuration.seconds)) {
                 progress = 1
             }
-            Task {
-                try? await Task.sleep(for: ChoreographyTiming.reducedDuration)
-                await ReceiptsHaptic.redStringConnect()
-            }
+            try await Task.sleep(for: ChoreographyTiming.reducedDuration)
+            await ReceiptsHaptic.redStringConnect()
             return
         }
 
         withAnimation(ChoreographyTiming.easeOutExpo(duration: duration)) {
             progress = 1
         }
-        Task {
-            // Twang at ~93% through the stroke — late enough that it lands
-            // when the eye sees the string snap taut, but not so late that it
-            // misses the visual completion.
-            try? await Task.sleep(for: .seconds(duration.seconds * 0.93))
-            await ReceiptsHaptic.redStringConnect()
-        }
+        // Twang at ~93% through the stroke — late enough that it lands when
+        // the eye sees the string snap taut, but not so late that it misses
+        // the visual completion.
+        try await Task.sleep(for: .seconds(duration.seconds * 0.93))
+        await ReceiptsHaptic.redStringConnect()
     }
 }
 
@@ -167,11 +166,18 @@ struct RedStringCurve: Shape {
         let dy = end.y - start.y
         let length = sqrt(dx * dx + dy * dy)
         guard length > 0 else { return start }
-        // Perpendicular unit vector. By convention, sag pulls the midpoint
-        // toward the +y direction for a left-to-right line — i.e. the string
-        // drapes downward like real yarn under gravity.
-        let perpX = -dy / length
-        let perpY = dx / length
+        // Perpendicular unit vector. The naive 90° counter-clockwise rotation
+        // (`perpX = -dy/length, perpY = dx/length`) sags downward only when
+        // dx > 0 — for right-to-left connections it would flip the sag *up*,
+        // visually defying gravity. Goal here is gravity simulation, not
+        // pure perpendicular geometry, so flip the perpendicular when it
+        // would point upward in screen space (+y is down on iOS).
+        var perpX = -dy / length
+        var perpY = dx / length
+        if perpY < 0 {
+            perpX = -perpX
+            perpY = -perpY
+        }
         let midX = (start.x + end.x) / 2 + perpX * sag
         let midY = (start.y + end.y) / 2 + perpY * sag
         return CGPoint(x: midX, y: midY)

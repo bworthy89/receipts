@@ -119,18 +119,26 @@ public struct PolaroidDevelop<Content: View>: View {
                 }
             }
             .task {
-                try? await Task.sleep(for: delay)
-                trigger.toggle()
-
-                if reduceMotion {
-                    ReceiptsHaptic.polaroidBloom()
-                    return
-                }
-
-                // Soft haptic at chemistry-bloom midpoint — 50% through.
-                try? await Task.sleep(for: .seconds(duration.seconds * 0.50))
-                ReceiptsHaptic.polaroidBloom()
+                // `try?` at the .task boundary swallows CancellationError
+                // when the view disappears; the inline `try await` below
+                // propagates cancellation immediately so the haptic can't
+                // fire on a removed view.
+                try? await play()
             }
+    }
+
+    private func play() async throws {
+        try await Task.sleep(for: delay)
+        trigger.toggle()
+
+        if reduceMotion {
+            ReceiptsHaptic.polaroidBloom()
+            return
+        }
+
+        // Soft haptic at chemistry-bloom midpoint — 50% through.
+        try await Task.sleep(for: .seconds(duration.seconds * 0.50))
+        ReceiptsHaptic.polaroidBloom()
     }
 }
 

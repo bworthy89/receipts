@@ -78,12 +78,16 @@ public struct StampSlam<Target: View>: View {
             }
             .offset(cellOffset)
             .task {
-                await play()
+                // See PinDrop.swift for the rationale: `try?` swallows
+                // CancellationError when the view disappears mid-slam, while
+                // `play()` uses `try await` internally so the kick sequence
+                // and echo haptic can't fire on a removed view.
+                try? await play()
             }
     }
 
-    private func play() async {
-        try? await Task.sleep(for: delay)
+    private func play() async throws {
+        try await Task.sleep(for: delay)
 
         if reduceMotion {
             stampScale = 1.0
@@ -108,23 +112,23 @@ public struct StampSlam<Target: View>: View {
         // size matches "now in contact with paper". Tuned to ~60% of the slam
         // duration (~280ms at default), where ease-out-expo has already
         // crossed most of its scale travel.
-        try? await Task.sleep(for: .seconds(slamSecs * 0.61))
+        try await Task.sleep(for: .seconds(slamSecs * 0.61))
         ReceiptsHaptic.stampImpact()
 
         // Wait for the slam to fully settle.
-        try? await Task.sleep(for: .seconds(slamSecs * 0.39))
+        try await Task.sleep(for: .seconds(slamSecs * 0.39))
 
         // Cell kick — damped 4-point shake. 30ms each, total = 120ms.
         // Travel decreases each step: 6 → 4 → 3 → 0pt.
         let step = kickSecs / 4
         withAnimation(.linear(duration: step)) { cellOffset = CGSize(width: 6, height: -2) }
-        try? await Task.sleep(for: .seconds(step))
+        try await Task.sleep(for: .seconds(step))
         withAnimation(.linear(duration: step)) { cellOffset = CGSize(width: -4, height: 1) }
-        try? await Task.sleep(for: .seconds(step))
+        try await Task.sleep(for: .seconds(step))
         withAnimation(.linear(duration: step)) { cellOffset = CGSize(width: 3, height: -1) }
-        try? await Task.sleep(for: .seconds(step))
+        try await Task.sleep(for: .seconds(step))
         withAnimation(.linear(duration: step)) { cellOffset = .zero }
-        try? await Task.sleep(for: .seconds(step))
+        try await Task.sleep(for: .seconds(step))
 
         ReceiptsHaptic.stampEcho()
     }

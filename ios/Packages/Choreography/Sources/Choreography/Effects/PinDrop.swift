@@ -63,20 +63,23 @@ public struct PinDrop<Content: View>: View {
                 }
             }
             .task {
-                await play()
+                // `try?` here swallows the CancellationError when the view
+                // disappears mid-motion. `play()` itself uses `try await` on
+                // every sleep so cancellation propagates immediately and the
+                // haptic does NOT fire on a removed view.
+                try? await play()
             }
     }
 
-    private func play() async {
-        try? await Task.sleep(for: delay)
-        try? Task.checkCancellation()
+    private func play() async throws {
+        try await Task.sleep(for: delay)
 
         if reduceMotion {
             // Land instantly, then flash on/off to signal "just landed".
             yOffset = 0
             withAnimation(.linear(duration: 0.05)) { flashOpacity = 0.55 }
             ReceiptsHaptic.pinDropLanding()
-            try? await Task.sleep(for: .milliseconds(50))
+            try await Task.sleep(for: .milliseconds(50))
             withAnimation(.easeOut(duration: 0.150)) { flashOpacity = 0 }
             return
         }
@@ -92,12 +95,12 @@ public struct PinDrop<Content: View>: View {
         withAnimation(ChoreographyTiming.easeOutQuart(duration: .seconds(descentSecs))) {
             yOffset = 0
         }
-        try? await Task.sleep(for: .seconds(descentSecs))
+        try await Task.sleep(for: .seconds(descentSecs))
         ReceiptsHaptic.pinDropLanding()
 
         // Phase 2: ricochet up.
         withAnimation(.linear(duration: ricochetSecs)) { yOffset = -12 }
-        try? await Task.sleep(for: .seconds(ricochetSecs))
+        try await Task.sleep(for: .seconds(ricochetSecs))
 
         // Phase 3: settle.
         withAnimation(ChoreographyTiming.easeOutQuart(duration: .seconds(settleSecs))) {
