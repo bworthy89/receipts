@@ -19,14 +19,13 @@ targets:
     platform: iOS
     sources:
       - path: Receipts
-    info:
-      path: Receipts/Info.plist
-      properties:
-        UILaunchScreen: {}
+        excludes:
+          - "Info.plist"
     settings:
       base:
         PRODUCT_NAME: Receipts
         PRODUCT_BUNDLE_IDENTIFIER: com.bworthy.receipts
+        INFOPLIST_FILE: Receipts/Info.plist
         TARGETED_DEVICE_FAMILY: "1,2"  # iPhone + iPad
         SUPPORTS_MACCATALYST: NO
         CODE_SIGN_STYLE: Automatic
