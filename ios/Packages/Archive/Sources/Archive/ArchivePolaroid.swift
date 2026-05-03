@@ -113,7 +113,7 @@ public struct ArchivePolaroid: View {
     }
 
     private var captionText: String {
-        let comps = Calendar.gregorian.dateComponents([.month, .day, .year], from: entry.investigatedOn)
+        let comps = Calendar(identifier: .gregorian).dateComponents([.month, .day, .year], from: entry.investigatedOn)
         let months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
         let m = months[max(1, min(12, comps.month ?? 1)) - 1]
         let d = String(format: "%02d", comps.day ?? 1)

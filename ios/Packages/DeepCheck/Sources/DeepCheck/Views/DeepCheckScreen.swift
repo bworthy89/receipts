@@ -136,15 +136,21 @@ public struct DeepCheckScreen: View {
         willPlay = log.shouldPlay(caseID: kase.caseID)
         do {
             let inv = try await provider.investigation(for: kase)
-            log.markInvestigated(
-                ArchiveEntry(
-                    caseID: kase.caseID,
-                    caseNumber: kase.caseNumber,
-                    headline: kase.headline,
-                    verdict: inv.verdict,
-                    investigatedOn: clock()
+            // Only mark on first investigation. Re-reads from the archive
+            // must NOT overwrite `investigatedOn` — doing so silently
+            // jumps the archived card to the TODAY group on every tap and
+            // corrupts the day-grouping history.
+            if willPlay {
+                log.markInvestigated(
+                    ArchiveEntry(
+                        caseID: kase.caseID,
+                        caseNumber: kase.caseNumber,
+                        headline: kase.headline,
+                        verdict: inv.verdict,
+                        investigatedOn: clock()
+                    )
                 )
-            )
+            }
             loadState = .ready(inv)
 
             #if DEBUG

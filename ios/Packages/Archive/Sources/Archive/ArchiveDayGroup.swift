@@ -39,7 +39,7 @@ public enum ArchiveGrouping {
     public static func groups(
         from entries: [ArchiveEntry],
         now: Date = Date(),
-        calendar: Calendar = .gregorian
+        calendar: Calendar = Calendar(identifier: .gregorian)
     ) -> [ArchiveDayGroup] {
         guard !entries.isEmpty else { return [] }
 
@@ -111,6 +111,3 @@ public enum ArchiveGrouping {
     }
 }
 
-extension Calendar {
-    public static let gregorian = Calendar(identifier: .gregorian)
-}
