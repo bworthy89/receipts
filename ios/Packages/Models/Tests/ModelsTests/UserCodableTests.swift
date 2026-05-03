@@ -57,6 +57,38 @@ struct UserCodableTests {
         #expect(decoded == original)
     }
 
+    @Test("decodes nested arrays and objects inside notification_prefs")
+    func decodesNestedNotificationPrefs() throws {
+        let json = """
+        {
+            "id": "user-nested",
+            "email": null,
+            "created_at": 1700000000,
+            "pro_until": null,
+            "feed_mode": "balanced",
+            "selected_topics": [],
+            "selected_outlets": [],
+            "excluded_outlets": [],
+            "notification_prefs": {
+                "breaking": true,
+                "quiet_hours": [22, 7],
+                "topics": {"politics": true, "sports": false}
+            }
+        }
+        """.data(using: .utf8)!
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        let user = try decoder.decode(User.self, from: json)
+
+        #expect(user.notificationPrefs["breaking"] == AnyCodable(true))
+        let quietArr = try #require(user.notificationPrefs["quiet_hours"]?.value as? [AnyCodable])
+        #expect(quietArr.count == 2)
+        #expect(quietArr[0] == AnyCodable(22))
+        let topicsDict = try #require(user.notificationPrefs["topics"]?.value as? [String: AnyCodable])
+        #expect(topicsDict["politics"] == AnyCodable(true))
+    }
+
     @Test("accepts a minimal /auth/apple user payload (no prefs fields)")
     func decodesMinimalAuthUser() throws {
         // /auth/apple returns a subset; we model defaults for the missing fields.

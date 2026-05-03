@@ -56,6 +56,10 @@ public struct KeychainStorage: Sendable {
         case errSecItemNotFound:
             var addQuery = query
             addQuery[kSecValueData as String] = data
+            // Device-local: don't sync the session token via iCloud Keychain.
+            // Without this, the platform default would let the token roam to other
+            // signed-in devices, which is the wrong default for a session credential.
+            addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
             let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
             guard addStatus == errSecSuccess else {
                 throw KeychainError.unhandledStatus(addStatus)

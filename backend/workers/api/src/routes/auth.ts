@@ -9,7 +9,7 @@ import type { AppBindings } from "../types.ts";
 const auth = new Hono<AppBindings>();
 
 interface AuthAppleBody {
-  identityToken?: unknown;
+  identity_token?: unknown;
 }
 
 interface UserRow {
@@ -23,15 +23,15 @@ interface UserRow {
 
 auth.post("/apple", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as AuthAppleBody;
-  if (typeof body.identityToken !== "string" || body.identityToken.length === 0) {
-    return c.json({ error: "missing identityToken" }, 400);
+  if (typeof body.identity_token !== "string" || body.identity_token.length === 0) {
+    return c.json({ error: "missing identity_token" }, 400);
   }
 
   const jwks = await fetchAppleJwks(c.env.CACHE);
   let claims;
   try {
     claims = await verifyAppleIdentityToken({
-      token: body.identityToken,
+      token: body.identity_token,
       audience: c.env.APPLE_AUDIENCE,
       jwks,
     });
@@ -77,7 +77,7 @@ auth.post("/apple", async (c) => {
   const sessionToken = await mintSessionToken({ userId: user.id, secret: c.env.SESSION_SECRET });
 
   return c.json({
-    sessionToken,
+    session_token: sessionToken,
     user: {
       id: user.id,
       email: user.email,

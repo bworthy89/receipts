@@ -1,15 +1,16 @@
 import Testing
 import Foundation
+import Models
 @testable import APIClient
 
 @Suite("API decoding (no network)")
 struct DecodingTests {
 
-    @Test("decodes /auth/apple response")
+    @Test("decodes /auth/apple response (snake_case wire format)")
     func decodesAuthAppleResponse() throws {
         let json = """
         {
-            "sessionToken": "abc.def.ghi",
+            "session_token": "abc.def.ghi",
             "user": {
                 "id": "u1",
                 "email": "u@example.com",
@@ -26,12 +27,22 @@ struct DecodingTests {
 
         #expect(result.sessionToken == "abc.def.ghi")
         #expect(result.user.id == "u1")
-        #expect(result.user.feedMode == "strict")
+        #expect(result.user.feedMode == .strict)
+    }
+
+    @Test("encodes /auth/apple request body using snake_case")
+    func encodesAuthAppleRequest() throws {
+        let req = AuthAppleRequest(identityToken: "apple.id.token.here")
+        let data = try JSONEncoder().encode(req)
+        let json = try #require(String(data: data, encoding: .utf8))
+
+        #expect(json.contains("\"identity_token\":\"apple.id.token.here\""))
+        #expect(!json.contains("identityToken"))
     }
 
     @Test("encodes /me PATCH body using snake_case")
     func encodesPatchMeRequest() throws {
-        let req = PatchMeRequest(feedMode: "balanced", selectedTopics: ["tech"])
+        let req = PatchMeRequest(feedMode: .balanced, selectedTopics: ["tech"])
         let data = try JSONEncoder().encode(req)
         let json = try #require(String(data: data, encoding: .utf8))
 

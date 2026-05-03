@@ -1,4 +1,5 @@
 import Foundation
+import Models
 
 /// One of the three deployed environments. The iOS app ships pointed at `.production`;
 /// during development it points at `.dev`.
@@ -19,7 +20,7 @@ public enum APIEnvironment: Sendable {
     }
 }
 
-/// Body type for `POST /auth/apple`.
+/// Body type for `POST /auth/apple`. Wire format is snake_case (matches the rest of the API).
 public struct AuthAppleRequest: Encodable, Sendable {
     public let identityToken: String
 
@@ -28,11 +29,11 @@ public struct AuthAppleRequest: Encodable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case identityToken
+        case identityToken = "identity_token"
     }
 }
 
-/// Response from `POST /auth/apple`.
+/// Response from `POST /auth/apple`. Wire format is snake_case throughout.
 public struct AuthAppleResponse: Decodable, Sendable {
     public let sessionToken: String
     public let user: AuthUser
@@ -42,7 +43,7 @@ public struct AuthAppleResponse: Decodable, Sendable {
         public let email: String?
         public let createdAt: Date
         public let proUntil: Date?
-        public let feedMode: String
+        public let feedMode: FeedMode
 
         private enum CodingKeys: String, CodingKey {
             case id, email
@@ -53,19 +54,20 @@ public struct AuthAppleResponse: Decodable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case sessionToken, user
+        case sessionToken = "session_token"
+        case user
     }
 }
 
 /// Body type for `PATCH /me`. All fields optional; only present ones are updated server-side.
 public struct PatchMeRequest: Encodable, Sendable {
-    public let feedMode: String?
+    public let feedMode: FeedMode?
     public let selectedTopics: [String]?
     public let selectedOutlets: [String]?
     public let excludedOutlets: [String]?
 
     public init(
-        feedMode: String? = nil,
+        feedMode: FeedMode? = nil,
         selectedTopics: [String]? = nil,
         selectedOutlets: [String]? = nil,
         excludedOutlets: [String]? = nil
