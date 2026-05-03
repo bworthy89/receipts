@@ -2,26 +2,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "DailyBriefing",
+    name: "Archive",
     platforms: [.iOS(.v26), .macOS(.v15)],
     products: [
-        .library(name: "DailyBriefing", targets: ["DailyBriefing"]),
+        .library(name: "Archive", targets: ["Archive"]),
     ],
     dependencies: [
         .package(path: "../Models"),
         .package(path: "../DesignSystem"),
-        .package(path: "../Choreography"),
         .package(path: "../DeepCheck"),
-        .package(path: "../Archive"),
     ],
     targets: [
         .target(
-            name: "DailyBriefing",
-            dependencies: ["Models", "DesignSystem", "Choreography", "DeepCheck", "Archive"]
+            name: "Archive",
+            dependencies: ["Models", "DesignSystem", "DeepCheck"]
         ),
         .testTarget(
-            name: "DailyBriefingTests",
-            dependencies: ["DailyBriefing", "Models"]
+            name: "ArchiveTests",
+            dependencies: ["Archive", "Models", "DeepCheck"]
         ),
     ],
     swiftLanguageModes: [.v6]

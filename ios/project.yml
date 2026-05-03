@@ -40,6 +40,8 @@ packages:
     path: Packages/DailyBriefing
   DeepCheck:
     path: Packages/DeepCheck
+  Archive:
+    path: Packages/Archive
 
 targets:
   Receipts:
@@ -58,6 +60,7 @@ targets:
       - package: Choreography
       - package: DailyBriefing
       - package: DeepCheck
+      - package: Archive
     settings:
       base:
         PRODUCT_NAME: Receipts

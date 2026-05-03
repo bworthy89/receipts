@@ -31,6 +31,7 @@ public struct DeepCheckScreen: View {
     private let kase: Case
     private let provider: any DeepCheckProvider
     private let log: InvestigationLog
+    private let clock: @Sendable () -> Date
     private let onDismiss: @MainActor () -> Void
 
     @State private var loadState: LoadState = .loading
@@ -41,11 +42,13 @@ public struct DeepCheckScreen: View {
         kase: Case,
         provider: any DeepCheckProvider = MockProvider(),
         log: InvestigationLog = .live(),
+        clock: @escaping @Sendable () -> Date = { Date() },
         onDismiss: @escaping @MainActor () -> Void
     ) {
         self.kase = kase
         self.provider = provider
         self.log = log
+        self.clock = clock
         self.onDismiss = onDismiss
     }
 
@@ -125,13 +128,23 @@ public struct DeepCheckScreen: View {
         // Always reset to .loading at the start of a load so retries
         // (force=true) get the same visual treatment as the initial fetch.
         loadState = .loading
+        // Decide replay vs skip BEFORE the load — log read is synchronous
+        // and we want the play/skip path locked in by the time the screen
+        // composes. The marking happens AFTER load with the full archive
+        // entry (case + verdict + investigated date), per the 2026-05-03
+        // archive-shape brief §4 schema upgrade.
+        willPlay = log.shouldPlay(caseID: kase.caseID)
         do {
             let inv = try await provider.investigation(for: kase)
-            // Decide replay vs skip BEFORE marking. Mark on first arrival
-            // even if the user dismisses mid-sequence — same crash-safety
-            // intent as StagingGate.markStaged.
-            willPlay = log.shouldPlay(caseID: kase.caseID)
-            if willPlay { log.markPlayed(caseID: kase.caseID) }
+            log.markInvestigated(
+                ArchiveEntry(
+                    caseID: kase.caseID,
+                    caseNumber: kase.caseNumber,
+                    headline: kase.headline,
+                    verdict: inv.verdict,
+                    investigatedOn: clock()
+                )
+            )
             loadState = .ready(inv)
 
             #if DEBUG
