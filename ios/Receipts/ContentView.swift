@@ -1,16 +1,50 @@
 import SwiftUI
+import DailyBriefing
+
+#if DEBUG
 import APIClient
 import Models
 import DesignSystem
 import Choreography
+#endif
 
 struct ContentView: View {
-    @State private var status: ProbeStatus = .idle
+    var body: some View {
+        NavigationStack {
+            DailyBriefingScreen()
+                .toolbar(.hidden, for: .navigationBar)
+        }
+        #if DEBUG
+        .overlay(alignment: .bottomTrailing) {
+            DevToolsButton()
+                .padding()
+        }
+        #endif
+    }
+}
 
-    #if DEBUG
-    @State private var showingCatalog = false
+#if DEBUG
+private struct DevToolsButton: View {
+    @State private var showing = false
+
+    var body: some View {
+        Button {
+            showing = true
+        } label: {
+            Image(systemName: "wrench.and.screwdriver")
+                .font(.system(size: 16, weight: .medium))
+                .padding(10)
+                .background(.ultraThinMaterial, in: Circle())
+                .foregroundStyle(.secondary)
+        }
+        .sheet(isPresented: $showing) { DevToolsSheet() }
+    }
+}
+
+private struct DevToolsSheet: View {
+    @State private var showingDS = false
     @State private var showingChoreography = false
-    #endif
+    @State private var probe: ProbeStatus = .idle
 
     enum ProbeStatus: Sendable, Equatable {
         case idle
@@ -20,75 +54,50 @@ struct ContentView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Receipts")
-                .font(.system(size: 32, weight: .semibold))
-            Text("DEV PROBE")
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-
-            Divider()
-
-            switch status {
-            case .idle:
-                Text("Tap to probe").font(.body)
-            case .loading:
-                ProgressView()
-            case .success(let response):
-                VStack(spacing: 4) {
-                    Text("ok: \(response.ok ? "true" : "false")")
-                    Text("service: \(response.service)")
+        NavigationStack {
+            List {
+                Section("Catalogs") {
+                    Button("DesignSystem Catalog") { showingDS = true }
+                    Button("Choreography Catalog") { showingChoreography = true }
                 }
-                .font(.body.monospaced())
-            case .failure(let message):
-                Text(message)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
+                Section("API probe") {
+                    switch probe {
+                    case .idle:
+                        Text("Tap to probe")
+                            .foregroundStyle(.secondary)
+                    case .loading:
+                        ProgressView()
+                    case .success(let response):
+                        Text("ok=\(response.ok ? "true" : "false") · service=\(response.service)")
+                            .font(.body.monospaced())
+                    case .failure(let message):
+                        Text(message)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    Button("Probe /health (dev)") {
+                        Task { await runProbe() }
+                    }
+                }
             }
-
-            Button("Probe /health (dev)") {
-                Task { await runProbe() }
-            }
-            .buttonStyle(.borderedProminent)
-
-            #if DEBUG
-            Button("View DesignSystem Catalog") {
-                showingCatalog = true
-            }
-            .buttonStyle(.bordered)
-
-            Button("View Choreography Catalog") {
-                showingChoreography = true
-            }
-            .buttonStyle(.bordered)
-            #endif
+            .navigationTitle("Dev Tools")
         }
-        .padding()
-        .task {
-            await runProbe()
-        }
-        #if DEBUG
-        .sheet(isPresented: $showingCatalog) {
-            DesignSystemCatalog()
-        }
-        .sheet(isPresented: $showingChoreography) {
-            ChoreographyCatalog()
-        }
-        #endif
+        .sheet(isPresented: $showingDS) { DesignSystemCatalog() }
+        .sheet(isPresented: $showingChoreography) { ChoreographyCatalog() }
     }
 
     private func runProbe() async {
-        status = .loading
+        probe = .loading
         let client = APIClient(environment: .dev)
         do {
             let response = try await client.health()
-            status = .success(response)
+            probe = .success(response)
         } catch {
-            status = .failure(String(describing: error))
+            probe = .failure(String(describing: error))
         }
     }
 }
+#endif
 
 #Preview {
     ContentView()
