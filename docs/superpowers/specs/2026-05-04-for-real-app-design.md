@@ -10,7 +10,15 @@
 
 **For Real??** is a single-purpose iOS utility: paste a video link or article URL, get back a sassy "receipt" that fact-checks it. Built to be the answer to *"is this even real?"* in your group chat.
 
-The previous app (THE CRIME BOARD / receipts) shipped 9 PRs of an investigation-themed UI — sepia polaroids, manila dossiers, torn-note feeds, hub-and-spoke "Deep Check" surfaces. That whole genre is wrong for the new product. We're keeping the brand `receipts` (the codename gets retired with the genre) and the backend infrastructure; everything else iOS-side is rebuilt fresh.
+The previous app (THE CRIME BOARD / `receipts`) shipped 9 PRs of an investigation-themed UI — sepia polaroids, manila dossiers, torn-note feeds, hub-and-spoke "Deep Check" surfaces. That whole genre is wrong for the new product.
+
+**Renames and what stays:**
+- **App brand: `receipts` → For Real??.** App Store name, icon wordmark, marketing — all switch to "For Real??". The previous lowercase `receipts` brand is retired.
+- **In-app artifact term: "receipt" stays.** The thing the app produces is still called a *receipt* — that wordplay survives the brand change.
+- **Codename: THE CRIME BOARD is retired** with the genre.
+- **Engineering namespace: `crimeboard` stays.** Cloudflare resources (`crimeboard-dev/-staging/-prod`), npm packages (`@crimeboard/*`), and the worker name `crimeboard-api` are not renamed — re-provisioning Cloudflare infra and refactoring imports earns no user-visible value, and the namespace is invisible outside the repo.
+- **Backend infrastructure stays.** The article-scraping work, migrations, deploy plumbing — all kept and extended.
+- **iOS surface area is rebuilt fresh** (see §4 Project layout).
 
 ### What "For Real??" feels like
 
