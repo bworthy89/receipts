@@ -92,10 +92,41 @@ receipts.post("/", async (c) => {
 
 receipts.get("/:id", async (c) => {
   const id = c.req.param("id");
-  const row = await c.env.DB.prepare("SELECT id FROM receipts WHERE id = ?").bind(id).first();
+  const row = await c.env.DB.prepare(
+    `SELECT id, source_url, url_hash, source_type, source_provider, title, status,
+            final_verdict, final_commentary, error_code, device_id, user_id,
+            created_at, finished_at
+       FROM receipts WHERE id = ?`
+  ).bind(id).first<ReceiptRow>();
+
   if (!row) return c.json({ error: "not found" }, 404);
-  // Filled out in Task 7.
-  return c.json({ error: "not implemented" }, 501);
+
+  const claimRows = await c.env.DB.prepare(
+    `SELECT id, receipt_id, position, claim_text, verdict, commentary, sources, resolved_at
+       FROM claims WHERE receipt_id = ? ORDER BY position ASC`
+  ).bind(id).all<ClaimRow>();
+
+  return c.json({
+    id: row.id,
+    source_url: row.source_url,
+    source_type: row.source_type,
+    source_provider: row.source_provider,
+    title: row.title,
+    status: row.status,
+    final_verdict: row.final_verdict,
+    final_commentary: row.final_commentary,
+    error_code: row.error_code,
+    created_at: row.created_at,
+    finished_at: row.finished_at,
+    claims: (claimRows.results ?? []).map((cr) => ({
+      position: cr.position,
+      claim_text: cr.claim_text,
+      verdict: cr.verdict,
+      commentary: cr.commentary,
+      sources: JSON.parse(cr.sources) as Array<{ url: string; title: string }>,
+      resolved_at: cr.resolved_at,
+    })),
+  });
 });
 
 export default receipts;

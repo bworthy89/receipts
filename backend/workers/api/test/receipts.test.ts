@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SELF } from "cloudflare:test";
+import { env } from "cloudflare:test";
 
 describe("receipts router mount", () => {
   it("returns 404 for an unknown receipt id (router is mounted)", async () => {
@@ -89,5 +90,71 @@ describe("POST /v1/receipts", () => {
     expect(res.status).toBe(422);
     const body = await res.json() as { error: string; error_code: string };
     expect(body.error_code).toBe("unsupported_provider");
+  });
+});
+
+describe("GET /v1/receipts/:id", () => {
+  it("returns 404 for an unknown id", async () => {
+    const res = await SELF.fetch("http://test/v1/receipts/00000000-0000-0000-0000-000000000000", {
+      headers: { "X-Receipts-Device": "device-A" },
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns the receipt JSON with empty claims when pending", async () => {
+    const id = crypto.randomUUID();
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'pending', ?, NULL, ?)`
+    ).bind(id, "https://www.youtube.com/watch?v=getme1", "hash-getme1", "device-A", now).run();
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${id}`, {
+      headers: { "X-Receipts-Device": "device-A" },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json() as {
+      id: string;
+      status: string;
+      source_provider: string;
+      claims: unknown[];
+    };
+    expect(body.id).toBe(id);
+    expect(body.status).toBe("pending");
+    expect(body.source_provider).toBe("youtube");
+    expect(body.claims).toEqual([]);
+  });
+
+  it("returns claims sorted by position when present", async () => {
+    const receiptId = crypto.randomUUID();
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, final_verdict, final_commentary,
+                             device_id, user_id, created_at, finished_at)
+       VALUES (?, ?, ?, 'article', 'article', 'Test', 'done', 'nope', 'bestie',
+               ?, NULL, ?, ?)`
+    ).bind(receiptId, "https://example.com/a", "hash-a", "device-A", now, now).run();
+
+    // Insert position 2 first to confirm sort works
+    await env.DB.prepare(
+      `INSERT INTO claims (id, receipt_id, position, claim_text, verdict, commentary, sources, resolved_at)
+       VALUES (?, ?, 2, 'second', 'mixed', 'meh', ?, ?)`
+    ).bind(crypto.randomUUID(), receiptId, JSON.stringify([{ url: "https://s2", title: "s2" }]), now).run();
+    await env.DB.prepare(
+      `INSERT INTO claims (id, receipt_id, position, claim_text, verdict, commentary, sources, resolved_at)
+       VALUES (?, ?, 1, 'first', 'nope', 'no', '[]', ?)`
+    ).bind(crypto.randomUUID(), receiptId, now).run();
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${receiptId}`, {
+      headers: { "X-Receipts-Device": "device-A" },
+    });
+    const body = await res.json() as {
+      claims: Array<{ position: number; claim_text: string; sources: Array<{ url: string; title: string }> }>;
+    };
+    expect(body.claims.map((c) => c.position)).toEqual([1, 2]);
+    expect(body.claims[0].claim_text).toBe("first");
+    expect(body.claims[1].sources).toEqual([{ url: "https://s2", title: "s2" }]);
   });
 });
