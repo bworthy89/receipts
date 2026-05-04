@@ -16,6 +16,11 @@ const UNSUPPORTED_HOSTS = new Set([
   "bsky.app",
 ]);
 
+const TRACKING_PARAMS = [
+  "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+  "fbclid", "gclid", "mc_cid", "mc_eid", "igshid", "_branch_match_id",
+];
+
 export function classifyUrl(input: string): ClassifiedUrl | null {
   let url: URL;
   try {
@@ -42,4 +47,28 @@ export function classifyUrl(input: string): ClassifiedUrl | null {
   // domains) but for Plan 1 anything that isn't unsupported and isn't a known video
   // host is an article.
   return { source_type: "article", source_provider: "article", normalized_url: url.toString() };
+}
+
+export function normalizeUrl(input: string): string {
+  let url: URL;
+  try {
+    url = new URL(input);
+  } catch {
+    return input;
+  }
+  for (const param of TRACKING_PARAMS) url.searchParams.delete(param);
+  url.hash = "";
+  url.host = url.host.toLowerCase();
+  if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+    url.pathname = url.pathname.slice(0, -1);
+  }
+  return url.toString();
+}
+
+export async function hashUrl(input: string): Promise<string> {
+  const encoded = new TextEncoder().encode(normalizeUrl(input));
+  const buf = await crypto.subtle.digest("SHA-256", encoded);
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
