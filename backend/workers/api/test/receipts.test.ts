@@ -158,3 +158,61 @@ describe("GET /v1/receipts/:id", () => {
     expect(body.claims[1].sources).toEqual([{ url: "https://s2", title: "s2" }]);
   });
 });
+
+describe("GET /v1/receipts (list)", () => {
+  it("lists only the calling device's receipts, newest first", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const idA1 = crypto.randomUUID();
+    const idA2 = crypto.randomUUID();
+    const idB1 = crypto.randomUUID();
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'done', 'device-list-A', NULL, ?)`
+    ).bind(idA1, "https://yt/a1", "h-a1", now - 100).run();
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'done', 'device-list-A', NULL, ?)`
+    ).bind(idA2, "https://yt/a2", "h-a2", now).run();
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'done', 'device-list-B', NULL, ?)`
+    ).bind(idB1, "https://yt/b1", "h-b1", now).run();
+
+    const res = await SELF.fetch("http://test/v1/receipts", {
+      headers: { "X-Receipts-Device": "device-list-A" },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json() as { receipts: Array<{ id: string }> };
+    const ids = body.receipts.map((r) => r.id);
+    expect(ids).toEqual([idA2, idA1]); // newest first
+    expect(ids).not.toContain(idB1);
+  });
+
+  it("respects ?limit=", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'done', 'device-list-A', NULL, ?)`
+    ).bind(crypto.randomUUID(), "https://yt/lim1", "h-lim1", now - 10).run();
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'done', 'device-list-A', NULL, ?)`
+    ).bind(crypto.randomUUID(), "https://yt/lim2", "h-lim2", now).run();
+
+    const res = await SELF.fetch("http://test/v1/receipts?limit=1", {
+      headers: { "X-Receipts-Device": "device-list-A" },
+    });
+    const body = await res.json() as { receipts: unknown[] };
+    expect(body.receipts.length).toBe(1);
+  });
+
+  it("400s without device header", async () => {
+    const res = await SELF.fetch("http://test/v1/receipts");
+    expect(res.status).toBe(400);
+  });
+});

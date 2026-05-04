@@ -90,6 +90,38 @@ receipts.post("/", async (c) => {
   return c.json({ receipt_id: id, status: "pending", cached: false });
 });
 
+receipts.get("/", async (c) => {
+  const deviceId = c.req.header("X-Receipts-Device");
+  if (!deviceId || deviceId.length === 0) {
+    return c.json({ error: "missing X-Receipts-Device header" }, 400);
+  }
+
+  const limitParam = parseInt(c.req.query("limit") ?? "20", 10);
+  const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 100) : 20;
+  const beforeParam = parseInt(c.req.query("before") ?? "", 10);
+  const before = Number.isFinite(beforeParam) ? beforeParam : null;
+
+  const sql = before == null
+    ? `SELECT id, source_url, source_type, source_provider, title, status,
+              final_verdict, final_commentary, created_at, finished_at
+         FROM receipts
+        WHERE device_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?`
+    : `SELECT id, source_url, source_type, source_provider, title, status,
+              final_verdict, final_commentary, created_at, finished_at
+         FROM receipts
+        WHERE device_id = ? AND created_at < ?
+        ORDER BY created_at DESC
+        LIMIT ?`;
+  const stmt = before == null
+    ? c.env.DB.prepare(sql).bind(deviceId, limit)
+    : c.env.DB.prepare(sql).bind(deviceId, before, limit);
+
+  const result = await stmt.all<Omit<ReceiptRow, "url_hash" | "device_id" | "user_id" | "error_code">>();
+  return c.json({ receipts: result.results ?? [] });
+});
+
 receipts.get("/:id", async (c) => {
   const id = c.req.param("id");
   const row = await c.env.DB.prepare(
