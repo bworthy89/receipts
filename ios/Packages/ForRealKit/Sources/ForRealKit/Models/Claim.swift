@@ -6,7 +6,7 @@ public struct Claim: Codable, Sendable, Equatable, Identifiable {
     public let verdict: Verdict
     public let commentary: String
     public let sources: [Source]
-    public let resolvedAt: Int
+    public let resolvedAt: Int?
 
     public var id: Int { position }
 
@@ -33,7 +33,7 @@ public struct Claim: Codable, Sendable, Equatable, Identifiable {
         verdict: Verdict,
         commentary: String,
         sources: [Source],
-        resolvedAt: Int
+        resolvedAt: Int? = nil
     ) {
         self.position = position
         self.claimText = claimText
