@@ -14,6 +14,8 @@ public struct FaxSheet: View {
 
     public let state: State
 
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
+
     public init(state: State) { self.state = state }
 
     public var body: some View {
@@ -35,6 +37,22 @@ public struct FaxSheet: View {
                 }
                 .padding(24)
             }
+        }
+        .animation(
+            reducedMotion ? ForRealMotion.reduceMotionHighlight.curve : ForRealMotion.claimArrival.curve,
+            value: animationKey
+        )
+    }
+
+    // MARK: - Animation key
+
+    private var animationKey: String {
+        switch state {
+        case .initial:                                      "initial"
+        case .streaming(let partial, let v, _):             "streaming-claims-\(partial.count)-verdict-\(v?.rawValue ?? "nil")"
+        case .final(let v, _, let claims):                  "final-\(v.rawValue)-claims-\(claims.count)"
+        case .skip:                                         "skip"
+        case .failed(let code):                             "failed-\(code)"
         }
     }
 
@@ -71,6 +89,27 @@ public struct FaxSheet: View {
         case .streaming(let partial, _, _):                  return partial.first(where: { $0.position == position })
         case .final(_, _, let claims):                       return claims.first(where: { $0.position == position })
         case .skip, .failed:                                 return nil
+        }
+    }
+}
+
+// MARK: - Coordinator adapter
+
+public extension FaxSheet.State {
+    /// Derives the view-side state from a coordinator's runtime state.
+    static func from(_ coordState: ReceiptCoordinator.State) -> FaxSheet.State {
+        switch coordState {
+        case .idle:
+            return .initial
+        case .streaming(_, let partial, let final):
+            return .streaming(partial: partial, finalVerdict: final?.verdict, finalCommentary: final?.commentary)
+        case .final(let fax):
+            if fax.finalVerdict == .skip {
+                return .skip(commentary: fax.finalCommentary ?? "")
+            }
+            return .final(verdict: fax.finalVerdict ?? .mixed, commentary: fax.finalCommentary ?? "", claims: fax.claims)
+        case .failed(let code):
+            return .failed(errorCode: code)
         }
     }
 }
