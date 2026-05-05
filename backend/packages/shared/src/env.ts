@@ -22,6 +22,7 @@ export interface Env {
   // Vars (non-secret config)
   APPLE_AUDIENCE: string; // The iOS app's bundle ID, e.g. "com.bworthy.crimeboard"
   STUB_DELAY_MS: string;  // numeric string; 0 in tests, ~600 in dev
+  ANON_DAILY_CAP: string; // numeric string; 10 in dev, 3 in tests
 
   // Secrets (set via `wrangler secret put`)
   SESSION_SECRET: string; // HMAC key for our session tokens

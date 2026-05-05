@@ -79,6 +79,21 @@ receipts.post("/", async (c) => {
     return c.json({ receipt_id: cached.id, status: cached.status, cached: true });
   }
 
+  const cap = parseInt(c.env.ANON_DAILY_CAP ?? "10", 10) || 10;
+  const since = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+  const used = await c.env.DB.prepare(
+    `SELECT COUNT(*) as n FROM receipts WHERE device_id = ? AND created_at >= ?`
+  ).bind(deviceId, since).first<{ n: number }>();
+  if ((used?.n ?? 0) >= cap) {
+    return c.json(
+      {
+        error: "Whoa bestie, that's a lot of receipts today. Try again tomorrow — or sign in for a bigger limit.",
+        error_code: "daily_cap_reached",
+      },
+      429
+    );
+  }
+
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
   await c.env.DB.prepare(

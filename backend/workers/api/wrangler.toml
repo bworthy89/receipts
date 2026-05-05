@@ -38,6 +38,7 @@ queue = "crimeboard-deepcheck-dev"
 [vars]
 APPLE_AUDIENCE = "com.bworthy.receipts"
 STUB_DELAY_MS = "600"
+ANON_DAILY_CAP = "10"
 # SESSION_SECRET is set as a secret via `wrangler secret put SESSION_SECRET`.
 
 # === Staging environment ===
@@ -73,6 +74,7 @@ queue = "crimeboard-deepcheck-staging"
 [env.staging.vars]
 APPLE_AUDIENCE = "com.bworthy.receipts"
 STUB_DELAY_MS = "600"
+ANON_DAILY_CAP = "10"
 
 # === Production environment ===
 # Deploy with: pnpm run deploy:prod
@@ -107,3 +109,4 @@ queue = "crimeboard-deepcheck-prod"
 [env.production.vars]
 APPLE_AUDIENCE = "com.bworthy.receipts"
 STUB_DELAY_MS = "600"
+ANON_DAILY_CAP = "10"

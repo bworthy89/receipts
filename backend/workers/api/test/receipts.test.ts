@@ -388,3 +388,52 @@ describe("DELETE /v1/receipts/:id", () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe("daily quota", () => {
+  it("returns 429 once the device has hit the cap (3 in tests)", async () => {
+    for (let i = 0; i < 3; i++) {
+      const res = await SELF.fetch("http://test/v1/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Receipts-Device": "device-quota-A" },
+        body: JSON.stringify({ url: `https://www.youtube.com/watch?v=quotaA${i}` }),
+      });
+      expect(res.status).toBe(200);
+    }
+    const fourth = await SELF.fetch("http://test/v1/receipts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Receipts-Device": "device-quota-A" },
+      body: JSON.stringify({ url: "https://www.youtube.com/watch?v=quotaA3" }),
+    });
+    expect(fourth.status).toBe(429);
+    const body = await fourth.json() as { error_code: string };
+    expect(body.error_code).toBe("daily_cap_reached");
+  });
+
+  it("does not count cache hits against the cap", async () => {
+    const cachedUrl = "https://www.youtube.com/watch?v=globalcache";
+    await SELF.fetch("http://test/v1/receipts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Receipts-Device": "device-priming" },
+      body: JSON.stringify({ url: cachedUrl }),
+    });
+
+    for (let i = 0; i < 3; i++) {
+      const r = await SELF.fetch("http://test/v1/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Receipts-Device": "device-quota-B" },
+        body: JSON.stringify({ url: cachedUrl }),
+      });
+      const body = await r.json() as { cached: boolean };
+      expect(body.cached).toBe(true);
+    }
+
+    for (let i = 0; i < 3; i++) {
+      const r = await SELF.fetch("http://test/v1/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Receipts-Device": "device-quota-B" },
+        body: JSON.stringify({ url: `https://www.youtube.com/watch?v=quotaB${i}` }),
+      });
+      expect(r.status).toBe(200);
+    }
+  });
+});
