@@ -31,7 +31,17 @@ struct ContentView: View {
             clipboardURL: clipboardURL,
             onAnalyze: { url in
                 presentingFax = true
-                Task { try? await coordinator.analyze(url: url) }
+                Task {
+                    do {
+                        try await coordinator.analyze(url: url)
+                    } catch {
+                        // Pre-stream transport errors (e.g., backend unreachable, malformed
+                        // URL rejected at POST) are caught here and surfaced through the
+                        // Fax sheet's failed state so the user can retry instead of staring
+                        // at an empty streaming shell.
+                        coordinator.fail(errorCode: "network_error")
+                    }
+                }
             },
             onRecentTap: {
                 // Plan 6 fills this in.

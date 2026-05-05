@@ -93,6 +93,12 @@ public final class ReceiptCoordinator {
 
     // MARK: - URL inference (lightweight; the backend already classifies authoritatively)
 
+    /// Surfaces a pre-stream failure (e.g., transport error before the SSE handshake)
+    /// as a `.failed` state so the UI can render the error variant + retry affordance.
+    public func fail(errorCode: String) {
+        state = .failed(errorCode: errorCode)
+    }
+
     private func inferType(from url: String) -> SourceType {
         if url.contains("tiktok.com") || url.contains("youtube.com") || url.contains("youtu.be") {
             return .video
