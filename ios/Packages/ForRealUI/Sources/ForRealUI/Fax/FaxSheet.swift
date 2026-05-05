@@ -52,6 +52,10 @@ public struct FaxSheet: View {
                 ForEach(1...3, id: \.self) { i in
                     ClaimCard(position: i, claim: claim(at: i))
                 }
+                if case .final(let verdict, let commentary, let claims) = state {
+                    FaxShareButton(verdict: verdict, commentary: commentary, claims: claims)
+                        .padding(.top, 8)
+                }
             }
             .padding(24)
         }
