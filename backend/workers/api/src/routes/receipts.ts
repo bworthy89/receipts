@@ -161,4 +161,22 @@ receipts.get("/:id", async (c) => {
   });
 });
 
+receipts.delete("/:id", async (c) => {
+  const deviceId = c.req.header("X-Receipts-Device");
+  if (!deviceId || deviceId.length === 0) {
+    return c.json({ error: "missing X-Receipts-Device header" }, 400);
+  }
+  const id = c.req.param("id");
+  const row = await c.env.DB.prepare("SELECT device_id FROM receipts WHERE id = ?")
+    .bind(id)
+    .first<{ device_id: string | null }>();
+  if (!row) return c.json({ error: "not found" }, 404);
+  if (row.device_id !== deviceId) return c.json({ error: "forbidden" }, 403);
+
+  await c.env.DB.prepare("UPDATE receipts SET device_id = NULL WHERE id = ?")
+    .bind(id)
+    .run();
+  return new Response(null, { status: 204 });
+});
+
 export default receipts;

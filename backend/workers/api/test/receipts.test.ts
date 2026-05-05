@@ -216,3 +216,51 @@ describe("GET /v1/receipts (list)", () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe("DELETE /v1/receipts/:id", () => {
+  it("unlinks the calling device but keeps the row for cache reuse", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const id = crypto.randomUUID();
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'done', 'device-del', NULL, ?)`
+    ).bind(id, "https://yt/del", "h-del", now).run();
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${id}`, {
+      method: "DELETE",
+      headers: { "X-Receipts-Device": "device-del" },
+    });
+    expect(res.status).toBe(204);
+
+    // Row still exists; device_id has been cleared.
+    const row = await env.DB.prepare("SELECT device_id FROM receipts WHERE id = ?")
+      .bind(id)
+      .first<{ device_id: string | null }>();
+    expect(row?.device_id).toBeNull();
+  });
+
+  it("404s on a missing id", async () => {
+    const res = await SELF.fetch("http://test/v1/receipts/missing-id", {
+      method: "DELETE",
+      headers: { "X-Receipts-Device": "device-del" },
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("403s when the device does not own the receipt", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const id = crypto.randomUUID();
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'done', 'device-owner', NULL, ?)`
+    ).bind(id, "https://yt/own", "h-own", now).run();
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${id}`, {
+      method: "DELETE",
+      headers: { "X-Receipts-Device": "device-stranger" },
+    });
+    expect(res.status).toBe(403);
+  });
+});
