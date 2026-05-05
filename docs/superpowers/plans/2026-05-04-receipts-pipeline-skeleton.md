@@ -1307,7 +1307,7 @@ const STUB_FINAL = {
 
 const sleep = (ms: number) => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve());
 
-async function replayFromD1(db: D1Database, receiptId: string, status: "streaming" | "done"): AsyncGenerator<SseEvent> {
+async function* replayFromD1(db: D1Database, receiptId: string, status: "streaming" | "done"): AsyncGenerator<SseEvent> {
   yield statusEvent({ status });
   const claimRows = await db.prepare(
     `SELECT position, claim_text, verdict, commentary, sources
