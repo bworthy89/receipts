@@ -1,95 +1,44 @@
-# receipts — iOS app
+# For Real?? iOS
 
-Native SwiftUI iOS 26+ app for the receipts news-as-investigation product. See `/PRODUCT.md` and `/DESIGN.md` for product/visual context, `/docs/superpowers/specs/2026-05-02-news-app-design.md` for the technical spec.
+Native SwiftUI app. iOS 26+, Swift 6.2 strict concurrency complete.
 
-## Layout
-
-```
-ios/
-├── project.yml         XcodeGen spec — single source of truth for the .xcodeproj
-├── Receipts.xcodeproj  Generated (gitignored); regenerate with `xcodegen generate`
-├── Receipts/           App target sources (entry, ContentView, Info.plist)
-└── Packages/           Local SPM packages
-    ├── Models/         Codable structs matching the backend's API
-    ├── APIClient/      URLSession-based client for the receipts backend
-    ├── PersistenceKit/ Keychain-backed session token storage
-    └── OnDeviceAI/     Apple Foundation Models wrapper (shell — methods added by feature plans)
-```
-
-Future packages (`DesignSystem`, `Choreography`, `BoardFeature`, `CaseFileFeature`, `DeepCheckFeature`, etc.) land here as separate SPM packages. **`DesignSystem` and `Choreography` are designed via the impeccable workflow** — see `/AGENTS.md`.
-
-## Prerequisites
-
-- Xcode 26+
-- macOS 15+
-- Homebrew
-- XcodeGen (`brew install xcodegen`)
-- Apple Developer team (free or paid) — needed for signing if you want to run on a real device. Simulator runs do not require signing.
-
-## First-time setup
+## Setup
 
 ```bash
+brew install xcodegen
 cd ios
-xcodegen generate           # creates Receipts.xcodeproj
-open Receipts.xcodeproj     # opens in Xcode
+xcodegen generate
+open ForReal.xcodeproj
 ```
 
-## Build
-
-Command line (simulator):
+## Build / test
 
 ```bash
+# Build the app
 cd ios
-xcodebuild -project Receipts.xcodeproj -scheme Receipts \
+xcodebuild -project ForReal.xcodeproj -scheme ForReal \
   -sdk iphonesimulator \
   -destination 'generic/platform=iOS Simulator' \
   -configuration Debug build CODE_SIGNING_ALLOWED=NO
+
+# Per-package tests (Swift Testing — @Test, #expect)
+cd ios/Packages/ForRealKit && swift test
+cd ios/Packages/ForRealUI && swift test
 ```
 
-Or just press ⌘B in Xcode after opening the project.
+ForRealKit's APIClient and SSE tests hit the deployed dev backend. Run `pnpm --filter @crimeboard/api run dev` from `backend/` first.
 
-## Run in simulator
+## Architecture
 
-In Xcode: ⌘R with an iOS 26+ simulator selected.
+- `ForReal` — main app target (iOS). `ContentView` owns the Home + Fax sheet routing.
+- `ForRealShare` — share extension (Plan 7).
+- `Packages/ForRealKit` — Codable models, APIClient, SSEStreamConsumer, SwiftData FaxStore, ReceiptCoordinator.
+- `Packages/ForRealUI` — color / type / motion tokens, HomeView, FaxSheet (with VerdictHeader, ClaimCard, FaxErrorState, FaxSkipState, FaxShareButton).
 
-Or by command line:
+The app spits out **a fax** (the user-facing artifact term). The codebase still uses `receipts` everywhere it's load-bearing for engineering — DB tables, API endpoints, the `receipts-analyzer` worker name — because renaming infrastructure earns no user-visible value. See `project_brand_codename.md` in working memory for the four-layer naming model.
 
-```bash
-cd ios
-xcrun simctl boot "iPhone 17 Pro"   # boots if not already
-open -a Simulator
-# build, install, launch — see Task 9 of the foundation plan for the full command
-```
+## Visual contract
 
-## Test
-
-Per-package:
-
-```bash
-cd ios/Packages/Models && swift test
-cd ios/Packages/APIClient && swift test
-cd ios/Packages/PersistenceKit && swift test
-cd ios/Packages/OnDeviceAI && swift build  # no tests yet
-```
-
-Or run all from the workspace in Xcode (⌘U).
-
-**Note:** `APIClient/Tests/HealthTests` hits the live deployed dev + staging workers. If the network is down or the workers are down, those tests fail with a transport error — that's an environmental issue, not a code issue.
-
-## Bundle ID and environments
-
-- **Bundle ID:** `com.bworthy.receipts`
-- **Backend environments** (`APIEnvironment.dev` / `.staging` / `.production`):
-  - dev: `https://crimeboard-api.bworthy89.workers.dev`
-  - staging: `https://crimeboard-api-staging.bworthy89.workers.dev`
-  - production: `https://crimeboard-api-prod.bworthy89.workers.dev` (not yet deployed)
-
-The dev probe in `ContentView.swift` is hardcoded to `.dev`. Future feature plans will configure environment selection properly (per-build-config + a settings toggle).
-
-## Conventions
-
-- **Swift 6.2** with strict concurrency complete.
-- **Swift Testing framework** (`@Test`, `#expect`), not XCTest.
-- **MV pattern** with `@Observable` stores; no MVVM-per-View.
-- **Detective-procedural vocabulary** in user-facing copy — see `/PRODUCT.md`. Never use generic news-app phrasing.
-- **The cork-board metaphor + choreographed motion are the design language** — see `/DESIGN.md`. Use the impeccable workflow before designing any UI surface.
+- `PRODUCT.md` (root) — strategic context: bestie tone, screenshot-bait, format-aware honesty.
+- `DESIGN.md` (root) — visual system: drenched Zesty Lemon palette, humanist sans, named rules.
+- `docs/impeccable/shapes/2026-05-04-home-and-fax-shape.md` — confirmed shape brief Plan 5 implements against.
