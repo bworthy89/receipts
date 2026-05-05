@@ -16,3 +16,42 @@ struct APIClientGetFaxTests {
         }
     }
 }
+
+@Suite("APIClient — postFax (live network)")
+struct APIClientPostFaxTests {
+
+    @Test("creates a fresh pending fax for a YouTube URL")
+    func freshURL() async throws {
+        let device = "test-device-fr-post-\(Int.random(in: 100_000...999_999))"
+        let client = APIClient(environment: .dev, deviceID: device)
+        let result = try await client.postFax(url: "https://www.youtube.com/watch?v=fr-fresh-\(UUID().uuidString)")
+
+        #expect(!result.receiptID.isEmpty)
+        #expect(result.status == "pending")
+        #expect(result.cached == false)
+    }
+
+    @Test("returns cached for a re-paste of a known URL")
+    func cachedURL() async throws {
+        let url = "https://www.youtube.com/watch?v=fr-cache-\(UUID().uuidString)"
+        let deviceA = "test-device-fr-post-A-\(Int.random(in: 100_000...999_999))"
+        let deviceB = "test-device-fr-post-B-\(Int.random(in: 100_000...999_999))"
+
+        let first = try await APIClient(environment: .dev, deviceID: deviceA).postFax(url: url)
+        let second = try await APIClient(environment: .dev, deviceID: deviceB).postFax(url: url)
+
+        #expect(first.receiptID == second.receiptID)
+        #expect(second.cached == true)
+    }
+
+    @Test("422s on Instagram (unsupported provider)")
+    func unsupportedProvider() async throws {
+        let client = APIClient(environment: .dev, deviceID: "test-device-fr-instagram")
+        do {
+            _ = try await client.postFax(url: "https://www.instagram.com/reel/abc/")
+            Issue.record("expected APIError.unsupportedProvider")
+        } catch APIError.unsupportedProvider {
+            // expected
+        }
+    }
+}

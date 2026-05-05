@@ -17,6 +17,11 @@ public final class APIClient: Sendable {
         try await get("/v1/receipts/\(id)")
     }
 
+    public func postFax(url: String) async throws -> PostFaxResult {
+        struct Body: Encodable { let url: String }
+        return try await send(method: "POST", path: "/v1/receipts", body: Body(url: url))
+    }
+
     // MARK: - Internal
 
     func get<T: Decodable>(_ path: String) async throws -> T {
@@ -64,6 +69,18 @@ public final class APIClient: Sendable {
             throw APIError.dailyCapReached(message: body ?? "")
         default:
             throw APIError.http(status: http.statusCode, body: String(data: data, encoding: .utf8))
+        }
+    }
+
+    public struct PostFaxResult: Decodable, Sendable, Equatable {
+        public let receiptID: String
+        public let status: String
+        public let cached: Bool
+
+        enum CodingKeys: String, CodingKey {
+            case receiptID = "receipt_id"
+            case status
+            case cached
         }
     }
 
