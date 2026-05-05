@@ -13,35 +13,48 @@ public struct FaxSheet: View {
     }
 
     public let state: State
+    public let onRetry: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
-    public init(state: State) { self.state = state }
+    public init(state: State, onRetry: @escaping () -> Void = {}) {
+        self.state = state
+        self.onRetry = onRetry
+    }
 
     public var body: some View {
         ZStack {
             Color.zestyLemon.ignoresSafeArea()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    VerdictHeader(verdict: currentVerdict)
-                    if let commentary = currentCommentary {
-                        Text(commentary)
-                            .font(ForRealType.headline.weight(.regular))
-                            .foregroundStyle(Color.lemonCharcoal)
-                    }
-                    if !isSkip {
-                        ForEach(1...3, id: \.self) { i in
-                            ClaimCard(position: i, claim: claim(at: i))
-                        }
-                    }
-                }
-                .padding(24)
+            switch state {
+            case .skip(let commentary):
+                FaxSkipState(commentary: commentary)
+            case .failed(let errorCode):
+                FaxErrorState(errorCode: errorCode, onRetry: onRetry)
+            default:
+                defaultBody
             }
         }
         .animation(
             reducedMotion ? ForRealMotion.reduceMotionHighlight.curve : ForRealMotion.claimArrival.curve,
             value: animationKey
         )
+    }
+
+    private var defaultBody: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                VerdictHeader(verdict: currentVerdict)
+                if let commentary = currentCommentary {
+                    Text(commentary)
+                        .font(ForRealType.headline.weight(.regular))
+                        .foregroundStyle(Color.lemonCharcoal)
+                }
+                ForEach(1...3, id: \.self) { i in
+                    ClaimCard(position: i, claim: claim(at: i))
+                }
+            }
+            .padding(24)
+        }
     }
 
     // MARK: - Animation key
@@ -76,11 +89,6 @@ public struct FaxSheet: View {
         case .skip(let commentary):                     commentary
         case .failed:                                   nil
         }
-    }
-
-    private var isSkip: Bool {
-        if case .skip = state { return true }
-        return false
     }
 
     private func claim(at position: Int) -> Claim? {
