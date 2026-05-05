@@ -1,130 +1,131 @@
-<!-- SEED — re-run $impeccable document once there's SwiftUI code, to extract real tokens, components, and to generate the DESIGN.json sidecar. -->
+<!-- SEED — re-run $impeccable document once Plan 5 lands SwiftUI code, to extract real tokens, components, and to generate the .impeccable/design.json sidecar. -->
 ---
-name: THE CRIME BOARD
-description: News as investigation — a cork-board iOS app for news-skeptical adults.
+name: For Real??
+description: A sassy iOS fact-check utility — drenched lemon yellow, humanist sans, the fax is the artifact.
 ---
 
-# Design System: THE CRIME BOARD
+# Design System: For Real??
 
 ## 1. Overview
 
-**Creative North Star: "The Open Case File"**
+**Creative North Star: "The Drenched Lemon Fax"**
 
-The system behaves like a working detective's desk at 11pm: cork board on the wall, paper evidence under the lamp, ink and stamps within arm's reach, a spool of red string for connections that the reader watches happen. Materials look like materials, not like UI textures dressed up as objects. The reader is addressed as a peer doing real work; the app's job is to pin the receipts in front of them and get out of the way.
+For Real?? produces one artifact: **the fax** — a fact-check verdict you can screenshot into a group chat. The visual system supports that one job and rejects every adjacent reflex.
 
-This system explicitly rejects the broadsheet-app reverence of Apple News, Google News, NYT, and WaPo, and the gamified-trophy-room vocabulary of Duolingo and LinkedIn. There are no logo-as-authority cues, no XP bars, no trophy menus, no slot-machine swipe feeds. There is also no costume-piece kitsch — no fake film grain layered over screenshots, no gratuitous typewriter chrome around modern UI. The metaphor is a working stage, not a Halloween set.
+The system commits to a **drenched yellow surface** (Zesty Lemon — bright lemon to muted olive) carried by **a single humanist sans** across the entire app. Color is the substrate, not a decoration. Type is the protagonist; copy carries the layout. The fax is bold, type-forward, and unmistakable as a thumbnail in iMessage.
+
+This system explicitly rejects:
+
+- **The "obvious AI" aesthetic** — cream-and-sage palettes, ✨ sparkle icons, frosted-glass cards, "AI-native" SaaS marketing. The single most-direct anti.
+- **Generic chat-bubble UI** — ChatGPT / Claude-style centered chat windows. The fax is an artifact, not a conversation.
+- **Institutional fact-check sites** (Snopes, PolitiFact) — narrow columns, stock photos, "we are the truth referee" tone.
+- **Broadsheet reverence** (Apple News, NYT) — serif solemnity, publisher-logo authority.
+- **Productivity SaaS slickness** (Linear, Notion) — sleek-but-faceless. We're a utility, not a tool.
+- **The retired CRIME BOARD aesthetic** — cork-board, manila folders, polaroids, push pins, red string, stamps, monospace receipt-printer chrome. This metaphor is dead and shouldn't reappear.
+
+The aesthetic anchor is **Oatly** — packaging copy as design, sassy type-forward layouts, color as identity. The fax should feel related to an Oatly carton: drenched in its color, copy the protagonist, no hidden cleverness.
 
 **Key Characteristics:**
-- Real-material palette (cork tan board, paper white, ink black, evidence red) used as named roles, not decorative splashes.
-- Display serif for editorial weight; monospace for procedural metadata (case numbers, timestamps, source IDs, stamp inscriptions).
-- Choreographed motion is the trust mechanic: pin-drops with weight, red-string draws stroke-by-stroke, polaroid develops, stamp slams with screen shake.
-- Iconography is physical artifact (push pins, polaroids, file tabs, rubber stamps), not abstract glyphs.
-- Voice is wry and procedural — *"Quiet day on the beat. Allegedly."* — never reverent, never mascot-cute.
+- Drenched Zesty Lemon surface — color IS the substrate
+- One humanist sans family across the entire app — no mono, no serif
+- Choreographed motion: the streaming claim-fill is the hero
+- Type-forward layout — copy carries the design, no decorative chrome
+- Flat, no shadows; depth is steps within the lemon family
+- High contrast for screenshot legibility at iMessage-thumbnail size
 
-## 2. Colors: The Working-Desk Palette
+## 2. Colors
 
-A four-role palette modeled on the physical artifacts of investigation. Each color is named for the object it's drawn from, not for its hue.
+A four-step yellow palette anchored on Zesty Lemon — bright lemon as the surface, drifting through cream and pale olive into deep olive for grounded chrome.
 
 ### Primary
-- **Cork Tan** *(value to be resolved during implementation — warm mid-chroma tan in the OKLCH ~70% L / ~0.04 C / ~80° H neighborhood)*: the board itself. The ambient surface of nearly every screen — the substrate everything else gets pinned to. Carries texture (subtle, low-contrast cork grain), never used as a flat fill.
 
-### Secondary
-- **Evidence Red** *(value to be resolved during implementation — a saturated red-yarn red, not a UI alert red; OKLCH ~55% L / ~0.20 C / ~25° H neighborhood)*: red string between connected sources, verdict stamps ("BUSTED", "CONFIRMED"), urgent / flagged states. Restricted color — its rarity is the point. **Never used for general UI accents (buttons, links, focus rings).**
+- **Zesty Lemon** (#FFFF66) — the drenched surface. The fax IS this color. Used as the primary background of the fax card, the home paste screen, the Recent list — the substrate everything sits on.
 
 ### Tertiary
-- **Polaroid Sepia** *(value to be resolved during implementation — warm faded cream-yellow, OKLCH ~88% L / ~0.04 C / ~70° H neighborhood)*: aged-paper backgrounds for archived case files, polaroid borders, the developing-image animation midpoint. Signals time depth (older, stored, resolved).
+
+- **Lemon Cream** (#FFE566) — slightly muted lemon for nested surfaces inside the fax (claim-card backgrounds, paste-from-clipboard chip). One step quieter than Zesty Lemon, so claim cards read as nested without leaving the surface color family.
+- **Lemon Sage** (#D6D58B) — pale olive-green for tertiary surfaces, inactive states, dividers. Same hue family, lower vibrancy.
+- **Olive Anchor** (#B3B347) — deep olive for grounded chrome (status bar tints, secondary type on light surfaces, key-line accents). The dark end of the same hue family.
 
 ### Neutral
-- **Paper White** *(value to be resolved during implementation — warm off-white, OKLCH ~96% L / ~0.005 C / ~75° H — explicitly NOT #fff)*: evidence cards, polaroid faces, source dossiers — the surfaces that hold readable content on top of the cork.
-- **Ink Black** *(value to be resolved during implementation — soft warm near-black, OKLCH ~18% L / ~0.01 C / ~75° H — explicitly NOT #000)*: body type, marker-style annotations, stamp ink. Tinted toward the cork hue to keep the palette unified.
-- **Pencil Gray** *(value to be resolved during implementation — warm mid-gray, OKLCH ~55% L / ~0.005 C / ~75° H)*: secondary type, dividers, disabled states, subtle map-string lines that haven't been "drawn" yet.
+
+- **Charcoal** *(value to be resolved during implementation — warm near-black, OKLCH ~18% L / ~0.01 C / ~95° H — explicitly NOT `#000`)*: body type and verdict display type on Zesty Lemon. Tinted toward yellow so it reads as belonging to the palette, not as foreign black.
 
 ### Named Rules
 
-**The Red-String Rule.** Evidence Red is reserved for *connection, verdict, and flag*. Buttons, links, focus rings, tab indicators, and accent decoration must use Ink Black, Cork Tan, or Pencil Gray instead. If everything is red, nothing is.
+**The Drenched Rule.** The surface IS the color. Zesty Lemon is the substrate of every screen. The fax doesn't sit on white with a yellow accent; the fax IS yellow, and white never appears as a background. If you reach for white "for breathing room," the layout is wrong, not the palette.
 
-**The No-Pure-Black, No-Pure-White Rule.** Neither `#000` nor `#fff` ever appears. All neutrals carry trace warmth (low chroma toward the cork hue) so screens feel like paper under a lamp, not like a stock UI.
+**The No-Pure-Black, No-White-Backgrounds Rule.** Neither `#000` nor any `#fff`-as-surface ever appears. All neutrals carry trace warmth toward yellow.
 
-**The Cork-Texture-Never-Decorative Rule.** Cork grain texture only appears on surfaces that *are* the board. It never wraps cards, bezels, modals, or chrome. Texture without function reads as theme.
+**The Verdict-Glyph-Plus-Label Rule.** Verdict identity (`nope`, `mixed`, `yep`, `skip`) carries text label, glyph (❌🤷✅🤔), and structural placement — never color alone. iMessage thumbnail compression is brutal; a fax must remain legible at thumbnail size on a yellow-on-yellow surface.
 
 ## 3. Typography
 
-**Display Font:** *[serif pairing to be chosen at implementation — direction: a contemporary editorial serif with high contrast and humanist warmth, NOT a stuffy Caslon revival or a tech-startup geometric serif. Reference points: Söhne Breit, Tiempos Headline, Lyon Display, Reckless.]*
-**Mono Font:** *[monospace pairing to be chosen at implementation — direction: a typewriter-evoking but contemporary mono with a small x-height and warm character, NOT pure Courier and NOT a tech-bro geometric mono like JetBrains. Reference points: Berkeley Mono, GT America Mono, ABC Diatype Mono, Pitch.]*
+**Family:** *[a contemporary humanist sans, to be chosen at implementation. Direction: warm, opinionated, slightly editorial — NOT a tech-startup geometric (Inter, Geist, JetBrains) and NOT a Material/Roboto-like neutral. Reference points: GT America, Söhne, ABC Diatype, Founders Grotesk — and the actual Oatly typeface (Söhne-adjacent) is a directional anchor.]*
 
-**Character:** Editorial serif carries the *story* (headlines, dek, verdict copy in stamps); mono carries the *file* (case numbers, timestamps, source IDs, BiasMeter readouts, stamp inscriptions, archive metadata). Two voices, clearly assigned. The serif is the headline of a newspaper clipping; the mono is the typewriter on the desk.
+**Character:** One typographic voice across the whole app. Headlines, body, labels, timestamps — all the same family. Hierarchy is weight-and-size, never face-change. Explicitly **no monospace receipt-printer chrome** — even though the schema is named `receipts`, the user never sees mono. The brand is humanist warmth, not utility-terminal.
 
 ### Hierarchy
 
-*Sizes are seed-mode placeholders; the iOS Dynamic Type ramp will be authoritative.*
+*Sizes are seed-mode placeholders; iOS Dynamic Type ramp will be authoritative.*
 
-- **Display** (serif, light-to-regular weight, ~32–44pt): top-of-case headlines, daily-briefing reveal type. Sparse use — once per screen at most.
-- **Headline** (serif, regular, ~22–28pt): story titles on the board.
-- **Title** (serif, medium, ~17pt): card titles, section headers inside dossiers.
-- **Body** (serif, regular, ~16pt, ~1.5 line-height, capped at 65–75ch): article body, source quotes, dek copy.
-- **Label** (mono, medium, ~11–13pt, slight tracking, often UPPERCASE): case numbers, stamp inscriptions, source IDs, timestamps, BiasMeter labels — the procedural metadata layer.
-- **Marker** *(optional accent — handwritten/marker face, used sparingly)*: post-it callouts, "PERSON OF INTEREST" sticker overlays, archive marginalia. Never used for body or anything readers must scan quickly.
+- **Verdict Display** (humanist sans, heavy weight, ~48–72pt, tight tracking): the verdict word on the fax (NOPE / MIXED / YEP / SKIP). The single largest type element on any screen — the screenshot's centerpiece.
+- **Headline** (humanist sans, semibold, ~24–28pt): claim text on each claim card; primary copy on the home paste screen.
+- **Body** (humanist sans, regular, ~16–17pt, ~1.4 line-height, capped at 65–75ch): bestie commentary lines, source titles.
+- **Label** (humanist sans, medium, ~12–13pt, slight tracking, often UPPERCASE): metadata — timestamp, source provider, claim position numbers ("CLAIM 1 OF 3").
 
 ### Named Rules
 
-**The Two-Voices Rule.** Editorial serif for the *story*; monospace for the *file*. Ambiguous text (e.g. button labels, nav items) uses mono so the file voice anchors the chrome.
+**The One Voice Rule.** One humanist sans family across the entire app. No mono. No serif. No "decorative" face for accents. Hierarchy comes from weight + size, not from face changes.
 
-**The No-Costume-Type Rule.** Marker / handwritten faces are seasoning, not structure. They appear on overlays, callouts, and stamp faces — never on body, headlines, or controls.
+**The Verdict-Carries-The-Type Rule.** The verdict word (NOPE / MIXED / YEP / SKIP) is always the largest type on the screen. Bestie commentary, sources, timestamps — all subordinate. If a screenshot compresses to a thumbnail and you can't read the verdict in one glance, the type hierarchy is wrong.
 
-**The Dynamic Type Honors The File Rule.** Mono labels scale with Dynamic Type the same as body. Procedural metadata is content, not chrome — it stays legible at the largest accessibility sizes. (Stamp text inside an image-rendered stamp is exempt; the labeled VoiceOver string carries the meaning.)
+**The No-Mono Rule.** Monospace is forbidden in user-facing UI. The codebase is named `receipts` but the user-facing artifact is *the fax* and the visual brand is humanist. Receipt-printer aesthetics — register-tape mono, dotted tear-lines, "TOTAL" framing — never appear. This is the crisp anti the typography spec defends.
 
 ## 4. Elevation
 
-The system is **layered, not lifted**: depth comes from things being physically *on top of* other things — paper on cork, polaroid on paper, pin through polaroid into cork — not from generic blue-tinted drop shadows. Most surfaces sit flat against the board; shadows belong only to objects that physically would cast them.
-
-### Shadow Vocabulary
-
-*Exact values to be resolved during implementation.*
-
-- **Pinned-card shadow** — the small, soft, slightly-offset shadow under a paper card pinned to cork. Tight blur, low offset, low opacity — the card is *on* the board, not floating above it.
-- **Polaroid shadow** — slightly heavier than the pinned-card shadow, with a hint of asymmetry as if the polaroid is curling at one corner.
-- **Lifted-while-dragging shadow** — appears only during direct manipulation (the user is moving a pin, dragging a card to the archive). Larger blur, larger offset, darker. Disappears on release.
+**Flat by default; drenched all the way down.** The fax doesn't float. It's not a card on a background; it IS the background. Depth comes from color steps within the lemon family (Zesty Lemon → Lemon Cream → Lemon Sage), not from drop shadows.
 
 ### Named Rules
 
-**The On-The-Board Rule.** Resting elements are pinned, not floating. Default elevation is low and warm-tinted, not the generic blue-gray "Material elevation 4" drop shadow. If a card looks like it's hovering over the cork instead of pinned to it, the shadow is wrong.
+**The No-Shadow Rule.** No `box-shadow` on the fax, on claim cards, on the paste box, on the home screen, anywhere. Surfaces don't lift; the color shifts.
 
-**The Lift-On-Touch Rule.** Heavy shadows are reserved for elements actively being manipulated. They communicate "this is in your hand right now" — they should never appear on idle UI.
+**The Color-Step-Is-Depth Rule.** Where a card needs to feel "below" or "inside" another, step one shade within the Zesty Lemon family (e.g., a claim card uses Lemon Cream against a Zesty Lemon background). No shadow, no border, no tint — just the next step on the palette.
 
 ## 5. Components
 
-*Omitted in seed mode — no SwiftUI components exist yet. The next pass of `$impeccable document` (after implementation begins) will extract real button, card, dossier, pin, polaroid, stamp, and string-connection components and generate the `DESIGN.json` sidecar so the live panel renders them.*
+*Omitted in seed mode — no SwiftUI code in the new style yet. The next pass of `$impeccable document` (after Plan 5 lands the iOS scaffold) will extract real components and generate the `.impeccable/design.json` sidecar so the live panel renders them.*
 
 Direction notes for the first pass of implementation, so the eventual extraction has a target:
 
-- **Pinned card** — paper-white evidence card with a single push-pin (top-left or top-center), small pinned-card shadow, ink-black body type. The pin is a real interactive object: tapping it can re-pin the card to the board.
-- **Polaroid** — square-ish image with a thick paper border, slight rotation (±2–4°) at rest, polaroid shadow. Captions inside the white border use the marker face for the handwritten-on-bottom-edge feel; system metadata uses mono.
-- **Stamp** — verdict graphic (CONFIRMED / BUSTED / COLD CASE / CLOSED) with mono inscription, slight rotation, ink-bleed edges. Stamps are *placed*, not pressed — they appear with a slam animation and stay slightly off-axis.
-- **Red-string connection** — animated stroke between two pinned objects. Drawn stroke-by-stroke during Deep Check; static after. Has a subtle shadow underneath suggesting it lies on the cork.
-- **Source dossier** — full-screen sheet styled as a manila folder: tab at the top with mono case-number label, paper-white interior, body content with serif body type and mono metadata blocks. Pull-to-close mimics closing the folder.
-- **Daily Briefing** — top-of-feed header that wakes the board: lights flicker on, new pins appear in sequence, mono date stamp slams into the corner.
-- **BiasMeter dossier** — evidence list with checkbox-marked findings, source attributions in mono, never a single bar-chart score. Multiple discrete pieces of evidence shown, not one number.
-- **Pro-tier** styling — labeled in mono as **SENIOR DETECTIVE** with a stamp glyph; never with a gold crown or premium-badge cliché.
+- **The fax** — full-screen drenched-Zesty-Lemon surface. Verdict word at the top in heavy display weight. 2–3 claim cards stacked below, each on Lemon Cream (one step quieter), with claim text in semibold headline and bestie commentary in regular body. No icons except the verdict glyph. No drop shadows. Corner radius small (≤8pt) — the fax has paper-edge feel, not pillow-card.
+- **The home paste screen** — drenched Zesty Lemon. Single large paste field with humanist sans placeholder copy. "Paste from clipboard" chip appears when a URL is detected. Tucked top-corner: small "Recent" label that reveals history.
+- **The streaming-fill state** — claim cards animate in one at a time as the backend resolves. Each card slides up from below the previous; claim text appears first, verdict glyph + bestie commentary settle in on a brief second beat. No skeleton, no spinner — the claim slot is empty until the data arrives.
+- **The Recent list** — drenched Zesty Lemon list of past faxes, each row showing verdict glyph + claim source + timestamp. Tap a row to reopen the full fax.
+- **Reduce Motion variant** — claim cards instant-place with a brief highlight rather than slide; preserves the sequence and the proof-of-work feel without vestibular cost.
 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** treat Cork Tan as the substrate of the entire app. New screens start from cork and add paper, not from paper and add cork as a decoration.
-- **Do** assign every typography decision to either *story* (serif) or *file* (mono). If a label feels like neither, it's probably mono — chrome belongs to the file voice.
-- **Do** invest in the choreographed pin-drop, red-string draw, polaroid develop, and stamp slam from day one. These are not polish-pass animations — they're the core trust mechanic. If shipping Reduce Motion fallbacks delays the v1, ship the fallbacks first and then the theatre.
-- **Do** keep Evidence Red truly rare. A screen with two red strings on it should feel charged. A screen with eight has lost the rule.
-- **Do** write empty states, errors, and loading copy in the wry-procedural voice modeled in PRODUCT.md (*"Quiet day on the beat. Allegedly."*).
-- **Do** carry mono labels for case numbers, timestamps, source IDs, and stamp inscriptions across every surface, including archive search results and notification copy. The file voice is what makes this app legible as itself.
-- **Do** present BiasMeter as a *dossier* — a collected list of evidence the user can read — not as a single number with a colored bar.
+
+- **Do** treat Zesty Lemon as the substrate of the entire app. Every screen starts from drenched yellow.
+- **Do** assign every text decision to the single humanist sans family. Hierarchy comes from weight + size, not from face changes.
+- **Do** invest in the streaming claim-fill choreography from day one. It's the hero motion, not polish.
+- **Do** carry the verdict glyph + label everywhere — verdict identity is never color-alone.
+- **Do** test fax layouts at 1080×1920 thumbnail compression (iMessage preview, screenshot-into-DM workflow). If the verdict isn't readable at thumbnail size, the layout has failed.
+- **Do** keep copy carrying the design. The bestie commentary is the typographic protagonist of the fax body.
+- **Do** step within the lemon family for nested surfaces (claim cards, chips, dividers). Color steps replace shadows everywhere.
 
 ### Don't:
-- **Don't** ever ship `#000` or `#fff`. Every neutral carries warm trace chroma toward the cork hue.
-- **Don't** use Evidence Red for general accents — buttons, links, focus rings, tab indicators. **The Red-String Rule** is non-negotiable. Reserve red for connection, verdict, and flag.
-- **Don't** wrap cork texture around chrome elements (modals, tab bars, sheets). Cork is the board, not a decoration.
-- **Don't** introduce XP bars, level-up popups, badge menus, or trophy rooms — the whole **Duolingo / LinkedIn** anti-reference from PRODUCT.md is a Don't here too. Achievement lives in the archive as a case file, period.
-- **Don't** lift the broadsheet-app templates of **Apple News, Google News, NYT, or WaPo** — generic story cards with publisher logos, anonymous algorithmic feeds, reverent serif chrome. PRODUCT.md names these by name; the visual system rejects them by name.
-- **Don't** mimic **Ground News / AllSides** balance-as-bar-chart UI. Cross-source visibility is rendered as physical evidence on the board, not as a horizontal stacked-bar widget.
-- **Don't** dress modern controls in costume-piece kitsch — fake film grain over the whole screen, gratuitous typewriter-paper backgrounds behind every button, sepia filters on UI icons. The metaphor is a working stage, not a Halloween set.
-- **Don't** use generic blue-gray Material drop shadows. **The On-The-Board Rule.** Surfaces are pinned, not floating; shadows are warm-tinted and tight.
-- **Don't** ship the marker / handwritten face inside body, headlines, controls, or anywhere a sighted user has to scan quickly. Marker is overlay seasoning only.
-- **Don't** confuse "tactile" with "skeuomorphic clutter". Materials should feel *present*, not noisy. If the cork grain is competing with the body type for attention, the texture is too loud.
+
+- **Don't** ever ship `#000` or use `#fff` as a background. All neutrals carry warm trace chroma toward yellow.
+- **Don't** introduce monospace anywhere user-facing. **The No-Mono Rule.** The schema is named `receipts` but the user-facing artifact is *the fax* and the visual brand is humanist warmth, not utility-terminal.
+- **Don't** use drop shadows for depth. **The No-Shadow Rule.** Color steps within the lemon family carry depth; shadows don't appear at all.
+- **Don't** introduce sparkle icons (✨), frosted-glass cards, cream-and-sage palettes, or any other "obvious AI design" cues. **The AI-Slop Anti.** If a designer would look at the fax and say "AI made that" without doubt, the design has failed.
+- **Don't** lift the ChatGPT / Claude / generic LLM chat-bubble UI. The fax is an artifact, not a conversation. There is no chat thread, no message bubbles, no "AI typing..." indicator.
+- **Don't** lift Snopes / PolitiFact's institutional-fact-check aesthetic — narrow columns, stock photos, headline-by-headline fact-check pages. Our fax is a screenshot, not a microsite.
+- **Don't** lift Apple News / NYT broadsheet reverence — serif headlines, publisher-logo authority, narrow body columns. We're not deferring to anyone.
+- **Don't** introduce streak panic, badges, XP bars, level-ups, or any other Duolingo / LinkedIn gamification. Satisfaction is the fax landing in a group chat, period.
+- **Don't** lift Linear / Notion / generic dark-mode SaaS slickness. Our brand has personality; productivity SaaS doesn't.
+- **Don't** put cork-board, manila-folder, polaroid, push-pin, red string, or any other CRIME BOARD-era investigation metaphor anywhere. That genre is retired and shouldn't reappear in the new system.
+- **Don't** confuse "drenched" with "monotone." The lemon family has four steps for a reason; flat one-color screens read as unfinished, not as committed.
