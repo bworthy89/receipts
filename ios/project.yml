@@ -23,6 +23,7 @@ packages:
 targets:
   ForReal:
     type: application
+    platform: iOS
     sources:
       - path: ForReal
         excludes:
@@ -31,8 +32,9 @@ targets:
       - package: ForRealKit
       - package: ForRealUI
     settings:
-      PRODUCT_NAME: For Real
-      PRODUCT_BUNDLE_IDENTIFIER: com.bworthy.forreal
-      INFOPLIST_FILE: ForReal/Info.plist
-      TARGETED_DEVICE_FAMILY: "1,2"
-      SUPPORTS_MACCATALYST: NO
+      base:
+        PRODUCT_NAME: For Real
+        PRODUCT_BUNDLE_IDENTIFIER: com.bworthy.forreal
+        INFOPLIST_FILE: ForReal/Info.plist
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
