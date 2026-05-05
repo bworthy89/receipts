@@ -8,13 +8,13 @@
 
 ## 1. Premise
 
-**For Real??** is a single-purpose iOS utility: paste a video link or article URL, get back a sassy "receipt" that fact-checks it. Built to be the answer to *"is this even real?"* in your group chat.
+**For Real??** is a single-purpose iOS utility: paste a video link or article URL, get back a sassy "fax" that fact-checks it. Built to be the answer to *"is this even real?"* in your group chat.
 
 The previous app (THE CRIME BOARD / `receipts`) shipped 9 PRs of an investigation-themed UI — sepia polaroids, manila dossiers, torn-note feeds, hub-and-spoke "Deep Check" surfaces. That whole genre is wrong for the new product.
 
 **Renames and what stays:**
 - **App brand: `receipts` → For Real??.** App Store name, icon wordmark, marketing — all switch to "For Real??". The previous lowercase `receipts` brand is retired.
-- **In-app artifact term: "receipt" stays.** The thing the app produces is still called a *receipt* — that wordplay survives the brand change.
+- **In-app artifact term: "fax".** The thing the app produces is called a *fax* — wordplay on "fact / facts / fax." DB tables, API endpoints, and the analyzer worker keep the legacy `receipts` schema name; users never see it.
 - **Codename: THE CRIME BOARD is retired** with the genre.
 - **Engineering namespace: `crimeboard` stays.** Cloudflare resources (`crimeboard-dev/-staging/-prod`), npm packages (`@crimeboard/*`), and the worker name `crimeboard-api` are not renamed — re-provisioning Cloudflare infra and refactoring imports earns no user-visible value, and the namespace is invisible outside the repo.
 - **Backend infrastructure stays.** The article-scraping work, migrations, deploy plumbing — all kept and extended.
@@ -22,18 +22,18 @@ The previous app (THE CRIME BOARD / `receipts`) shipped 9 PRs of an investigatio
 
 ### What "For Real??" feels like
 
-- **Shazam for truth.** Open the app, paste a link, watch a receipt fill in over ~30s, screenshot it, send to your group chat, close the app. In and out.
-- **One feature done well.** No feed, no daily briefing, no cork board. Just paste-and-receipt.
+- **Shazam for truth.** Open the app, paste a link, watch a fax fill in over ~30s, screenshot it, send to your group chat, close the app. In and out.
+- **One feature done well.** No feed, no daily briefing, no cork board. Just paste-and-fax.
 - **Bestie tone.** *"Bestie, the 'Harvard study' he keeps citing? Doesn't exist. Made it up. Truly bold."* Sassy fact-checker, not deadpan referee.
-- **Screenshot-bait.** The receipt is the artifact. It must look great as a 1080×1920 image dropped into iMessage.
+- **Screenshot-bait.** The fax is the artifact. It must look great as a 1080×1920 image dropped into iMessage.
 
 ---
 
-## 2. The Receipt
+## 2. The Fax
 
-The receipt is the product. Every other surface exists to produce or recall a receipt.
+The fax is the product. Every other surface exists to produce or recall a fax.
 
-A receipt is composed of:
+A fax is composed of:
 
 - **Source metadata** — URL, type (video / article), provider (TikTok / YouTube / article), title.
 - **Final verdict** — one of `nope` ❌, `mixed` 🤷, `yep` ✅, `skip` 🤔.
@@ -55,31 +55,31 @@ Visual treatment is owned by the impeccable skill at implementation time. This s
 | `yep` | ✅ | Supported by credible sources |
 | `skip` | 🤔 | Not checkable (opinion, joke, all vibes) |
 
-The receipt-level final verdict is synthesized from claim verdicts (worst-of, with `skip` neutral).
+The fax-level final verdict is synthesized from claim verdicts (worst-of, with `skip` neutral).
 
 ---
 
 ## 3. User Flows
 
-### Primary: paste a link, get a receipt
+### Primary: paste a link, get a fax
 
 1. User has a URL — TikTok, YouTube/Shorts, or article — that they want checked.
 2. **From inside the app:** open For Real??, paste into the box (or tap "Paste from Clipboard" when a URL is detected), tap analyze.
 3. **From outside the app (preferred):** in TikTok, Safari, iMessage, or any app that exposes a URL via the iOS Share sheet, tap Share → "For Real??" appears in the sheet → tap → app opens with analysis already starting.
-4. The Receipt screen appears. Final verdict and commentary are placeholders. Claim cards stream in one at a time as the backend resolves them, ~20–60s total. The user watches it fill in.
-5. Once final, the user can screenshot or tap Share to export the receipt as an image.
+4. The Fax screen appears. Final verdict and commentary are placeholders. Claim cards stream in one at a time as the backend resolves them, ~20–60s total. The user watches it fill in.
+5. Once final, the user can screenshot or tap Share to export the fax as an image.
 
 ### Re-paste of a known URL
 
-If the URL has been analyzed before (globally — not just by this user), the cached receipt is returned immediately. The user sees a fully-formed receipt with no waiting and no token spend.
+If the URL has been analyzed before (globally — not just by this user), the cached fax is returned immediately. The user sees a fully-formed fax with no waiting and no token spend.
 
-### Re-open a past receipt
+### Re-open a past fax
 
-Tap the small **Recent** icon top-corner on Home → list of past receipts (anonymous local; optionally synced if signed in) → tap a row → the original Receipt screen, fully populated.
+Tap the small **Recent** icon top-corner on Home → list of past faxes (anonymous local; optionally synced if signed in) → tap a row → the original Fax screen, fully populated.
 
 ### Sign in with Apple
 
-A "Sign In" button lives on the Recent screen and the Settings page. Tap → Apple's 1-tap flow → backend exchanges the Apple identity token for a session token and links the calling device's anonymous receipts to the new account (the `migrated_count` in the response is shown to the user as a small confirmation). iOS then calls `GET /v1/receipts` to fetch any receipts already on that account from other devices and merges them into the local SwiftData store. Account screen has Sign Out + Delete Account (App Store requirement when SiwA is present).
+A "Sign In" button lives on the Recent screen and the Settings page. Tap → Apple's 1-tap flow → backend exchanges the Apple identity token for a session token and links the calling device's anonymous faxes to the new account (the `migrated_count` in the response is shown to the user as a small confirmation). iOS then calls `GET /v1/receipts` to fetch any faxes already on that account from other devices and merges them into the local SwiftData store. Account screen has Sign Out + Delete Account (App Store requirement when SiwA is present).
 
 ---
 
@@ -90,7 +90,7 @@ A "Sign In" button lives on the Recent screen and the Settings page. Tap → App
 | Surface | Purpose | Notes |
 |---|---|---|
 | **Home** | Single-purpose paste box | "Paste from Clipboard" affordance when a URL is on the clipboard. Small "Recent" icon top-corner. |
-| **Receipt** | Streaming-fill receipt; final state with share | Whether this transitions in via push or overlays Home is an impeccable-time choice. |
+| **Fax** | Streaming-fill fax; final state with share | Whether this transitions in via push or overlays Home is an impeccable-time choice. |
 | **Recent** | Tucked-away history list | Reached only via the icon on Home. Includes "Sign in with Apple" prompt + Settings entry. |
 | **Settings** | Account + about + delete account | Reached from Recent. Sign in / Sign out / Delete account / version info. |
 | **Share Extension** | iOS share-sheet target | Receives a URL from any app, kicks off analysis directly. Same code path as the in-app paste. |
@@ -114,13 +114,15 @@ UI styling tokens live in `ForRealUI` and are decided/iterated by the impeccable
 ### State
 
 - **In-flight analysis** — `receipt_id` + active SSE connection. App memory only. Cancelled if the user navigates away or backgrounds for >30s.
-- **Local store** (SwiftData) — completed receipts and their claims. Indexed by URL hash so re-pasting a known URL hits cache. Keyed by anonymous `device_id` for ownership.
+- **Local store** (SwiftData) — completed faxes and their claims. Indexed by URL hash so re-pasting a known URL hits cache. Keyed by anonymous `device_id` for ownership.
 - **Auth state** — `nil` (anonymous, default) or `{user_id, session_token}` after SiwA. Stored in Keychain.
 - **`device_id`** — UUID generated on first launch, persisted in Keychain (survives reinstall), sent as `X-Receipts-Device` on every API call.
 
 ---
 
 ## 5. Backend
+
+> **Naming note for this section:** the wire format and schema use `receipts` everywhere — DB table, API paths (`/v1/receipts`), worker name (`workers/receipts-analyzer`), event names (`receipt_final`), header (`X-Receipts-Device`). This is the engineering layer; the user-facing artifact term is "fax" and the two never collapse. Don't rename the schema in implementation plans without explicit user direction.
 
 ### Architecture
 
@@ -226,7 +228,7 @@ All endpoints accept `X-Receipts-Device: <uuid>` header. Authenticated endpoints
 - **Daily cap per device_id (anonymous):** 10 receipts / 24h.
 - **Daily cap per user_id (signed in):** 50 receipts / 24h. (Acts as a small SiwA carrot.)
 - Cache-hits don't count against the cap (re-pasting a known viral video is free for the user).
-- Exceeded → friendly error: *"Whoa bestie, that's a lot of receipts today. Try again tomorrow — or sign in for a bigger limit."*
+- Exceeded → friendly error: *"Whoa bestie, that's a lot of faxes today. Try again tomorrow — or sign in for a bigger limit."*
 - We don't try to defeat a determined adversary. Forging device IDs is trivial; we accept that and rely on global URL caching to keep the actual cost line flat.
 
 ---
@@ -238,12 +240,12 @@ All endpoints accept `X-Receipts-Device: <uuid>` header. Authenticated endpoints
 | URL won't resolve / private / removed | `failed` with `error_code: source_unreachable`; UI shows: *"Couldn't reach this one — link may be private or pulled."* |
 | TikTok extraction fails | One automatic retry; then `failed` with `error_code: provider_blocked`; UI: *"TikTok's playing hard to get. Try again in a sec."* |
 | Audio transcription fails | `failed` with `error_code: transcription_failed`; UI: *"Couldn't make out the audio."* |
-| Long YouTube video (>10 min) | Cap analysis at first 8 minutes; receipt's final_commentary notes the cap. |
-| No checkable claims (opinion, joke, music) | Receipt completes with `final_verdict: skip`. Commentary: *"This one's all vibes. Nothing to fact-check, just feelings."* No claim cards. |
+| Long YouTube video (>10 min) | Cap analysis at first 8 minutes; the fax's final_commentary notes the cap. |
+| No checkable claims (opinion, joke, music) | The fax completes with `final_verdict: skip`. Commentary: *"This one's all vibes. Nothing to fact-check, just feelings."* No claim cards. |
 | All claims unresolvable (web search empty) | Each claim lands as `mixed` with commentary noting the gap. |
 | Article behind paywall | `failed` with `error_code: paywalled`; UI: *"Paywall blocked us — try a public mirror."* |
 | Unsupported provider (Insta, FB, Bluesky video) | Detected at URL parse, before quota counting. UI: *"We don't speak that platform yet — coming later."* |
-| Re-paste of cached URL | Idempotency hit; cached receipt returned in the POST response (no SSE needed). UI: receipt appears instantly. |
+| Re-paste of cached URL | Idempotency hit; cached fax returned in the POST response (no SSE needed). UI: fax appears instantly. |
 | Re-paste of own pending receipt | Idempotency hit; returns the in-flight receipt_id; iOS reuses the existing SSE stream. |
 
 ---
@@ -261,7 +263,7 @@ Scaled to the surface area; this is two-track (backend + iOS).
 ### iOS
 
 - **Unit tests:** API client (with stubbed responses), SSE event parser, SwiftData store CRUD, URL normalizer, idempotency cache hit, anon→signed-in migration flow.
-- **Snapshot tests:** Receipt screen in each of (loading / streaming with 1, 2, 3 claims / final each verdict / failed). Home with and without clipboard URL. Recent list empty + populated.
+- **Snapshot tests:** Fax screen in each of (loading / streaming with 1, 2, 3 claims / final each verdict / failed). Home with and without clipboard URL. Recent list empty + populated.
 - **UI tests:** the primary flow (paste → analyze → final), the share-extension flow, sign in → migration.
 - **Manual:** ~5 real-world URLs across both providers per platform release.
 
@@ -271,10 +273,10 @@ Scaled to the surface area; this is two-track (backend + iOS).
 
 To name the things explicitly so they don't sneak in:
 
-- Public profiles / shareable receipt URLs on the web.
-- "Send a receipt to a friend" in-app (sharing is screenshot only for MVP).
+- Public profiles / shareable fax URLs on the web.
+- "Send a fax to a friend" in-app (sharing is screenshot only for MVP).
 - Instagram Reels, Facebook video, Bluesky video, X video, direct mp4.
-- Comment threads / discussion under a receipt.
+- Comment threads / discussion under a fax.
 - Notifications (no push for MVP).
 - iPad-specific layout (universal layout fine for v1; iPad polish later).
 - Web app / Android.
@@ -288,10 +290,10 @@ To name the things explicitly so they don't sneak in:
 - **LLM model selection** — extraction model, verification model (Workers AI / OpenAI / Anthropic).
 - **SSE vs WebSocket vs Durable Object** — for the streaming connection. SSE is the assumption; revisit if it doesn't compose well with Workers AI streaming.
 - **Whisper provider** — Workers AI Whisper vs OpenAI Whisper API.
-- **Receipt visual treatment** — entirely owned by the impeccable skill in implementation plans.
+- **Fax visual treatment** — entirely owned by the impeccable skill in implementation plans.
 
 ---
 
 ## Skill applicability
 
-- **`impeccable`:** YES, applies to every iOS UI plan derived from this spec (Home, Receipt, Recent, Settings, Share Extension). Backend / data-layer plans do not invoke impeccable.
+- **`impeccable`:** YES, applies to every iOS UI plan derived from this spec (Home, Fax, Recent, Settings, Share Extension). Backend / data-layer plans do not invoke impeccable.
