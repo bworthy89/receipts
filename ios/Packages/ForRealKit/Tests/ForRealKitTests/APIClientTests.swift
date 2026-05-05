@@ -55,3 +55,41 @@ struct APIClientPostFaxTests {
         }
     }
 }
+
+@Suite("APIClient — list + delete (live network)")
+struct APIClientListDeleteTests {
+
+    @Test("list returns the calling device's faxes")
+    func listForDevice() async throws {
+        let device = "test-device-fr-list-\(Int.random(in: 100_000...999_999))"
+        let client = APIClient(environment: .dev, deviceID: device)
+        _ = try await client.postFax(url: "https://www.youtube.com/watch?v=fr-list-\(UUID().uuidString)")
+
+        let summaries = try await client.listFaxes(limit: 10, before: nil)
+        #expect(!summaries.isEmpty)
+    }
+
+    @Test("delete unlinks a fax owned by the device")
+    func deleteOwnFax() async throws {
+        let device = "test-device-fr-delete-\(Int.random(in: 100_000...999_999))"
+        let client = APIClient(environment: .dev, deviceID: device)
+        let result = try await client.postFax(url: "https://www.youtube.com/watch?v=fr-delete-\(UUID().uuidString)")
+
+        try await client.deleteFax(id: result.receiptID)
+
+        // After delete, listing should not show it.
+        let summaries = try await client.listFaxes(limit: 10, before: nil)
+        #expect(!summaries.contains { $0.id == result.receiptID })
+    }
+
+    @Test("delete on missing id throws notFound")
+    func deleteMissingID() async throws {
+        let client = APIClient(environment: .dev, deviceID: "test-device-fr-delete-missing")
+        do {
+            try await client.deleteFax(id: "00000000-0000-0000-0000-000000000000")
+            Issue.record("expected APIError.notFound")
+        } catch APIError.notFound {
+            // expected
+        }
+    }
+}
