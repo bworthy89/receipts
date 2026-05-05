@@ -217,6 +217,130 @@ describe("GET /v1/receipts (list)", () => {
   });
 });
 
+async function readSse(res: Response): Promise<Array<{ event: string; data: unknown }>> {
+  const text = await res.text();
+  const events: Array<{ event: string; data: unknown }> = [];
+  for (const block of text.split("\n\n").filter((b) => b.trim().length > 0)) {
+    let event = "message";
+    let dataLines: string[] = [];
+    for (const line of block.split("\n")) {
+      if (line.startsWith("event: ")) event = line.slice(7).trim();
+      else if (line.startsWith("data: ")) dataLines.push(line.slice(6));
+    }
+    events.push({ event, data: JSON.parse(dataLines.join("\n")) });
+  }
+  return events;
+}
+
+describe("GET /v1/receipts/:id/stream", () => {
+  it("404s for an unknown id", async () => {
+    const res = await SELF.fetch("http://test/v1/receipts/missing/stream", {
+      headers: { "X-Receipts-Device": "device-A" },
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("streams status, three claim_finals, then receipt_final for a fresh receipt", async () => {
+    const postRes = await SELF.fetch("http://test/v1/receipts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Receipts-Device": "device-stream" },
+      body: JSON.stringify({ url: "https://www.youtube.com/watch?v=stream1" }),
+    });
+    const { receipt_id } = await postRes.json() as { receipt_id: string };
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${receipt_id}/stream`, {
+      headers: { "X-Receipts-Device": "device-stream" },
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/event-stream");
+
+    const events = await readSse(res);
+    const types = events.map((e) => e.event);
+    expect(types).toEqual([
+      "status", "claim_final", "claim_final", "claim_final", "receipt_final",
+    ]);
+    const positions = events.filter((e) => e.event === "claim_final").map((e) => (e.data as { position: number }).position);
+    expect(positions).toEqual([1, 2, 3]);
+
+    const get = await SELF.fetch(`http://test/v1/receipts/${receipt_id}`, {
+      headers: { "X-Receipts-Device": "device-stream" },
+    });
+    const body = await get.json() as { status: string; claims: unknown[] };
+    expect(body.status).toBe("done");
+    expect(body.claims.length).toBe(3);
+  });
+
+  it("replays from D1 when the receipt is already done", async () => {
+    const postRes = await SELF.fetch("http://test/v1/receipts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Receipts-Device": "device-replay" },
+      body: JSON.stringify({ url: "https://www.youtube.com/watch?v=replay1" }),
+    });
+    const { receipt_id } = await postRes.json() as { receipt_id: string };
+    await SELF.fetch(`http://test/v1/receipts/${receipt_id}/stream`, {
+      headers: { "X-Receipts-Device": "device-replay" },
+    }).then(readSse);
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${receipt_id}/stream`, {
+      headers: { "X-Receipts-Device": "device-replay" },
+    });
+    const events = await readSse(res);
+    expect(events.map((e) => e.event)).toEqual([
+      "status", "claim_final", "claim_final", "claim_final", "receipt_final",
+    ]);
+
+    const claimCount = await env.DB.prepare("SELECT COUNT(*) as n FROM claims WHERE receipt_id = ?")
+      .bind(receipt_id)
+      .first<{ n: number }>();
+    expect(claimCount?.n).toBe(3);
+  });
+
+  it("replays existing claims when the receipt is already streaming (no duplicate inserts)", async () => {
+    const id = crypto.randomUUID();
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'youtube', NULL, 'streaming', 'device-stream2', NULL, ?)`
+    ).bind(id, "https://www.youtube.com/watch?v=stream2", "hash-stream2", now).run();
+    await env.DB.prepare(
+      `INSERT INTO claims (id, receipt_id, position, claim_text, verdict, commentary, sources, resolved_at)
+       VALUES (?, ?, 1, 'partial', 'nope', 'mid-stream', '[]', ?)`
+    ).bind(crypto.randomUUID(), id, now).run();
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${id}/stream`, {
+      headers: { "X-Receipts-Device": "device-stream2" },
+    });
+    expect(res.status).toBe(200);
+    const events = await readSse(res);
+    expect(events.map((e) => e.event)).toEqual(["status", "claim_final"]);
+    expect((events[0].data as { status: string }).status).toBe("streaming");
+
+    const claimCount = await env.DB.prepare("SELECT COUNT(*) as n FROM claims WHERE receipt_id = ?")
+      .bind(id)
+      .first<{ n: number }>();
+    expect(claimCount?.n).toBe(1);
+  });
+
+  it("emits an error event when the receipt is in failed state", async () => {
+    const id = crypto.randomUUID();
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO receipts (id, source_url, url_hash, source_type, source_provider,
+                             title, status, error_code, device_id, user_id, created_at)
+       VALUES (?, ?, ?, 'video', 'tiktok', NULL, 'failed', 'provider_blocked', 'device-fail', NULL, ?)`
+    ).bind(id, "https://vm.tiktok.com/failed", "hash-failed", now).run();
+
+    const res = await SELF.fetch(`http://test/v1/receipts/${id}/stream`, {
+      headers: { "X-Receipts-Device": "device-fail" },
+    });
+    const events = await readSse(res);
+    expect(events.length).toBe(1);
+    expect(events[0].event).toBe("error");
+    expect((events[0].data as { error_code: string }).error_code).toBe("provider_blocked");
+  });
+});
+
 describe("DELETE /v1/receipts/:id", () => {
   it("unlinks the calling device but keeps the row for cache reuse", async () => {
     const now = Math.floor(Date.now() / 1000);

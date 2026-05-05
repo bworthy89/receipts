@@ -21,6 +21,7 @@ export default defineWorkersConfig({
           bindings: {
             APPLE_AUDIENCE: "com.bworthy.crimeboard.test",
             SESSION_SECRET: "test-session-secret-do-not-use-in-prod",
+            STUB_DELAY_MS: "0",
             TEST_MIGRATIONS: migrations,
           },
         },

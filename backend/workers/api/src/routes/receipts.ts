@@ -1,7 +1,9 @@
 import { Hono } from "hono";
+import { streamSSE } from "hono/streaming";
 import type { AppBindings } from "../types.ts";
 import type { SourceType, SourceProvider } from "../lib/url.ts";
 import { classifyUrl, hashUrl } from "../lib/url.ts";
+import { runStubPipeline } from "../lib/stub-pipeline.ts";
 
 const receipts = new Hono<AppBindings>();
 
@@ -158,6 +160,20 @@ receipts.get("/:id", async (c) => {
       sources: JSON.parse(cr.sources) as Array<{ url: string; title: string }>,
       resolved_at: cr.resolved_at,
     })),
+  });
+});
+
+receipts.get("/:id/stream", async (c) => {
+  const id = c.req.param("id");
+  const exists = await c.env.DB.prepare("SELECT id FROM receipts WHERE id = ?").bind(id).first();
+  if (!exists) return c.json({ error: "not found" }, 404);
+
+  const delayMs = parseInt(c.env.STUB_DELAY_MS ?? "0", 10) || 0;
+
+  return streamSSE(c, async (stream) => {
+    for await (const ev of runStubPipeline(c.env.DB, id, delayMs)) {
+      await stream.writeSSE({ event: ev.event, data: ev.data });
+    }
   });
 });
 
