@@ -92,10 +92,15 @@ export async function* runStubPipeline(
   ).bind(receiptId).run();
   if (cas.meta.changes === 0) {
     // Lost the race — someone else moved it out of pending. Replay current state.
-    const fresh = await db.prepare(`SELECT status FROM receipts WHERE id = ?`).bind(receiptId)
-      .first<Pick<ReceiptRow, "status">>();
-    if (fresh?.status === "done") yield* replayFromD1(db, receiptId, "done");
-    else yield* replayFromD1(db, receiptId, "streaming");
+    const fresh = await db.prepare(`SELECT status, error_code FROM receipts WHERE id = ?`).bind(receiptId)
+      .first<Pick<ReceiptRow, "status" | "error_code">>();
+    if (fresh?.status === "done") {
+      yield* replayFromD1(db, receiptId, "done");
+    } else if (fresh?.status === "failed") {
+      yield errorEvent({ error_code: fresh.error_code ?? "unknown", message: "receipt previously failed" });
+    } else {
+      yield* replayFromD1(db, receiptId, "streaming");
+    }
     return;
   }
   yield statusEvent({ status: "streaming" });
